@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aethera Core | Hospital Suite v5</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080d1a; --surface:#0f1726; --surface2:#141f30; --surface3:#182033;
+  --border:#1a2840; --border2:#223050;
+  --accent:#3b82f6; --accent2:#2563eb;
+  --green:#10b981; --yellow:#f59e0b; --red:#ef4444;
+  --purple:#8b5cf6; --pink:#ec4899; --cyan:#06b6d4;
+  --text:#d8e2f0; --muted:#4e6580; --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ════════════════════════════════
+   AUTH SCREENS
+════════════════════════════════ */
+#authWrap {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+  background: radial-gradient(ellipse at 20% 50%, rgba(59,130,246,.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(139,92,246,.07) 0%, transparent 55%),
+              radial-gradient(ellipse at 60% 80%, rgba(6,182,212,.05) 0%, transparent 50%),
+              var(--bg);
+}
+/* Animated orbs */
+#authWrap::before {
+  content:''; position:absolute; width:500px; height:500px; border-radius:50%;
+  background:radial-gradient(circle, rgba(59,130,246,.06) 0%, transparent 70%);
+  top:-120px; left:-100px; animation:orbFloat 12s ease-in-out infinite;
+}
+#authWrap::after {
+  content:''; position:absolute; width:400px; height:400px; border-radius:50%;
+  background:radial-gradient(circle, rgba(139,92,246,.06) 0%, transparent 70%);
+  bottom:-100px; right:-80px; animation:orbFloat 15s ease-in-out infinite reverse;
+}
+@keyframes orbFloat {
+  0%,100%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(30px,-20px) scale(1.05);}
+  66%{transform:translate(-20px,15px) scale(.97);}
+}
+
+/* Grid lines background */
+.auth-grid-bg {
+  position:absolute; inset:0; z-index:0;
+  background-image: linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.auth-card {
+  position:relative; z-index:2;
+  width:100%; max-width:460px;
+  background:rgba(15,23,38,.85);
+  border:1px solid rgba(59,130,246,.15);
+  border-radius:20px;
+  padding:40px 40px 36px;
+  backdrop-filter:blur(20px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.04),
+              0 24px 64px rgba(0,0,0,.5),
+              0 0 80px rgba(59,130,246,.06);
+  animation:cardIn .5s cubic-bezier(.16,1,.3,1);
+  margin:20px;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+/* Brand header inside card */
+.auth-logo-wrap {
+  display:flex; align-items:center; gap:10px; margin-bottom:28px;
+}
+.auth-logo-icon {
+  width:38px; height:38px; border-radius:10px;
+  background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; font-weight:900; color:#fff;
+  font-family:'Syne',sans-serif; letter-spacing:-1px;
+  box-shadow:0 4px 14px rgba(59,130,246,.4);
+}
+.auth-logo-text { font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; }
+.auth-logo-text span { color:var(--accent); }
+.auth-logo-sub { font-size:.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:1px; }
+
+/* Tab switcher */
+.auth-toggle{display:flex;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:4px;margin-bottom:26px;gap:3px;width:100%;}
+.auth-toggle-btn{flex:1;padding:9px 16px;border:none;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.83rem;background:transparent;color:var(--muted);transition:all .2s;}
+.auth-toggle-btn.active{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;box-shadow:0 3px 12px rgba(59,130,246,.35);}
+
+/* legacy compat */
+.auth-tabs{display:none!important;}
+.auth-tab{}
+.auth-brand{}
+
+.auth-title{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;margin-bottom:5px;letter-spacing:-.3px;}
+.auth-sub{font-size:.8rem;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+
+.form-group{margin-bottom:14px;}
+.form-lbl{display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin-bottom:6px;}
+.form-inp{
+  width:100%;padding:11px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:.88rem;
+  transition:border-color .18s,box-shadow .18s,background .18s;
+}
+.form-inp:focus{outline:none;border-color:rgba(59,130,246,.6);box-shadow:0 0 0 3px rgba(59,130,246,.1);background:rgba(59,130,246,.04);}
+.form-inp::placeholder{color:var(--muted);opacity:.5;}
+.form-inp-icon{position:relative;}
+.form-inp-icon .form-inp{padding-left:14px;}
+.form-inp-icon .inp-ico{display:none;}
+
+/* Role buttons */
+.role-select{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px;}
+.role-btn{
+  padding:10px 6px 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  background:rgba(255,255,255,.03);
+  cursor:pointer;transition:all .18s;text-align:center;
+  font-family:'DM Sans',sans-serif;
+}
+.role-btn:hover{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.06);}
+.role-btn.role-selected{border-color:var(--accent);background:rgba(59,130,246,.12);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.role-btn.active-doctor,.role-btn.active-nurse,.role-btn.active-pharmacist,.role-btn.active-lab{border-color:var(--accent);background:rgba(59,130,246,.10);}
+.role-btn .role-ico{font-size:1.2rem;display:block;margin-bottom:4px;}
+.role-btn .role-nm{font-size:.7rem;font-weight:700;color:var(--text);}
+.role-btn .role-desc{font-size:.58rem;color:var(--muted);margin-top:2px;}
+
+.auth-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;
+  cursor:pointer;transition:all .2s;margin-top:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:.2px;
+}
+.auth-btn-primary{
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:#fff;
+  box-shadow:0 4px 18px rgba(59,130,246,.3);
+}
+.auth-btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(59,130,246,.45);}
+.auth-btn-primary:active{transform:translateY(0);}
+.auth-btn-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;}
+.auth-btn-purple:hover{box-shadow:0 4px 16px rgba(139,92,246,.35);}
+
+.auth-divider{display:none;}
+.auth-link{color:var(--accent);cursor:pointer;font-weight:600;transition:.15s;}
+.auth-link:hover{color:#60a5fa;}
+
+.auth-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;padding:9px 13px;font-size:.8rem;margin-bottom:14px;display:none;}
+.auth-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:#34d399;padding:9px 13px;font-size:.8rem;margin-bottom:14px;display:none;}
+.admin-note{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:7px;padding:9px 12px;font-size:.74rem;color:#a78bfa;margin-bottom:12px;}
+.strength-bar{height:3px;background:rgba(255,255,255,.06);margin-top:6px;border-radius:2px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;}
+
+/* Divider line */
+.auth-foot-link{text-align:center;font-size:.78rem;color:var(--muted);margin-top:18px;}
+.auth-foot-link .auth-link{font-size:.78rem;}
+
+/* Side panel gone — single centered card */
+.auth-side{display:none;}
+.auth-main{display:contents;}
+
+/* ════════════════════════════════
+   APP SHELL (hidden until login)
+════════════════════════════════ */
+#appWrap { display:none; height:100vh; overflow:hidden; flex-direction:column; }
+#appWrap.visible { display:flex; }
+
+/* TOP NAV BAR */
+.topbar {
+  height:50px; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 22px; gap:12px; flex-shrink:0;
+  justify-content:space-between;
+}
+.topbar-brand { font-family:'Syne',sans-serif; font-size:.9rem; font-weight:800; letter-spacing:.5px; }
+.topbar-brand span { color:var(--accent); }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.user-chip {
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:20px; padding:5px 12px 5px 5px;
+}
+.user-avatar {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:.75rem; color:#fff;
+}
+.user-name  { font-size:.78rem; font-weight:600; }
+.user-role  { font-size:.62rem; color:var(--muted); }
+.logout-btn {
+  padding:5px 12px; background:transparent; border:1px solid var(--border);
+  border-radius:6px; color:var(--muted); font-size:.75rem; font-weight:600;
+  cursor:pointer; transition:.18s; font-family:'DM Sans',sans-serif;
+}
+.logout-btn:hover { border-color:var(--red); color:var(--red); }
+#clock-top { font-size:.72rem; color:var(--muted); font-variant-numeric:tabular-nums; }
+
+/* MAIN LAYOUT */
+.app-body { display:flex; flex-grow:1; overflow:hidden; }
+
+/* SIDEBAR */
+aside{width:200px;min-width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.nav-section{padding:14px 14px 4px;font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:500;font-size:.83rem;color:var(--muted);transition:all .15s;margin:1px 8px;position:relative;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(59,130,246,.12);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:25%;height:50%;width:2.5px;background:var(--accent);border-radius:0 2px 2px 0;}
+.nav-item.locked{opacity:.35;cursor:not-allowed;}
+.nav-item.locked:hover{background:transparent;color:var(--muted);}
+.nav-icon{width:14px;text-align:center;font-size:.55rem;color:var(--border2);}
+.nav-badge{margin-left:auto;border-radius:10px;padding:1px 6px;font-size:.58rem;font-weight:700;}
+.nb-r{background:var(--red);color:#fff;}.nb-y{background:var(--yellow);color:#111;}
+.sidebar-foot{padding:10px 14px;font-size:.62rem;color:var(--muted);border-top:1px solid var(--border);line-height:1.8;margin-top:auto;}
+
+/* MAIN CONTENT */
+main{flex-grow:1;display:flex;flex-direction:column;overflow:hidden;}
+.view-wrap{flex-grow:1;overflow-y:auto;padding:22px 26px;}
+.view{display:none;animation:fadeUp .2s ease;}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══ REUSABLE COMPONENTS ═══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;}
+.card-title{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding-bottom:10px;margin-bottom:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.card-title span{color:var(--accent);font-size:.62rem;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.lbl{display:block;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:5px;margin-top:13px;}
+input[type=text],input[type=date],input[type=number],input[type=time],input[type=email],input[type=password],select,textarea{width:100%;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;transition:border-color .18s,box-shadow .18s;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.55;}
+select option{background:var(--surface2);}
+.btn{padding:8px 16px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;}
+.btn-p{background:var(--accent);color:#fff;}.btn-p:hover{background:var(--accent2);}
+.btn-s{background:var(--green);color:#fff;}.btn-s:hover{background:#059669;}
+.btn-d{background:var(--red);color:#fff;}.btn-d:hover{background:#dc2626;}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--muted);}.btn-g:hover{border-color:var(--accent);color:var(--accent);}
+.btn-y{background:var(--yellow);color:#111;}
+.btn-full{width:100%;justify-content:center;padding:11px;margin-top:14px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;}
+.stat-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.ca{color:var(--accent);}.cg{color:var(--green);}.cy{color:var(--yellow);}.cr{color:var(--red);}.cp{color:var(--purple);}.cc{color:var(--cyan);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{text-align:left;padding:10px 14px;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(26,40,64,.6);font-size:.84rem;vertical-align:middle;}
+.tbl tr:hover td{background:var(--surface2);}
+.mono{font-family:'Courier New',monospace;font-size:.72rem;color:var(--accent);}
+.bdg{padding:2px 7px;border-radius:4px;font-size:.62rem;font-weight:700;letter-spacing:.2px;display:inline-block;}
+.bb{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
+.bg{background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);}
+.by{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+.br{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+.bp{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2);}
+.bc{background:rgba(6,182,212,.1);color:#22d3ee;border:1px solid rgba(6,182,212,.2);}
+.bpk{background:rgba(236,72,153,.1);color:#f472b6;border:1px solid rgba(236,72,153,.2);}
+.panel{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:14px 16px;margin-top:14px;}
+.panel-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.mode-tog{display:flex;background:var(--surface2);padding:3px;border-radius:8px;margin-bottom:16px;width:fit-content;border:1px solid var(--border);}
+.mode-btn{padding:7px 18px;border-radius:6px;border:none;font-weight:600;font-size:.8rem;cursor:pointer;transition:all .18s;color:var(--muted);background:transparent;font-family:'DM Sans',sans-serif;}
+.mode-btn.active{background:var(--accent);color:#fff;}
+.recall-box{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.18);padding:13px;border-radius:8px;margin-bottom:16px;display:none;}
+.recall-res{background:var(--surface2);border:1px solid rgba(245,158,11,.15);padding:8px 12px;margin-top:5px;cursor:pointer;border-radius:6px;font-size:.82rem;transition:.18s;}
+.recall-res:hover{border-color:var(--yellow);color:var(--yellow);}
+.disp-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.disp-card{border:1.5px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;transition:all .18s;text-align:center;background:var(--surface);}
+.disp-card:hover{border-color:var(--accent);}
+.disp-icon{font-size:1.2rem;display:block;margin-bottom:3px;}
+.disp-lbl{font-size:.68rem;font-weight:700;color:var(--muted);}
+.disp-sub{font-size:.58rem;color:var(--muted);margin-top:1px;opacity:.65;}
+.disp-card.sel-return{border-color:#10b981;background:rgba(16,185,129,.07);}.disp-card.sel-return .disp-lbl{color:#34d399;}
+.disp-card.sel-referral{border-color:#f59e0b;background:rgba(245,158,11,.07);}.disp-card.sel-referral .disp-lbl{color:#fbbf24;}
+.disp-card.sel-discharge{border-color:#ef4444;background:rgba(239,68,68,.07);}.disp-card.sel-discharge .disp-lbl{color:#f87171;}
+.disp-det{display:none;}.disp-det.open{display:block;animation:fadeUp .18s ease;}
+.bed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;}
+.bed-tile{border:1.5px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .18s;background:var(--surface);}
+.bed-tile:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.35);}
+.bed-icon{font-size:1.3rem;display:block;margin-bottom:4px;}
+.bed-num{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:800;}
+.bed-slbl{font-size:.58rem;font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.4px;}
+.bed-pname{font-size:.55rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;margin:auto;}
+.bf{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.05);}.bf .bed-slbl{color:#34d399;}
+.bo{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05);}.bo .bed-slbl{color:#f87171;}
+.br2{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05);}.br2 .bed-slbl{color:#fbbf24;}
+.bm{border-color:rgba(100,116,139,.3);background:rgba(100,116,139,.05);}.bm .bed-slbl{color:#94a3b8;}
+.ward-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.ward-tab{padding:6px 14px;border-radius:6px;border:1px solid var(--border);font-size:.75rem;font-weight:600;cursor:pointer;transition:.18s;color:var(--muted);background:var(--surface);}
+.ward-tab:hover{border-color:var(--accent);color:var(--accent);}
+.ward-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--muted);}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
+.triage-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.triage-btn{padding:10px 6px;border-radius:8px;border:2px solid transparent;font-weight:700;font-size:.72rem;cursor:pointer;transition:all .18s;text-align:center;font-family:'DM Sans',sans-serif;}
+.t1{background:rgba(239,68,68,.12);color:#f87171;border-color:rgba(239,68,68,.3);}.t1.sel{background:var(--red);color:#fff;border-color:var(--red);}
+.t2{background:rgba(249,115,22,.12);color:#fb923c;border-color:rgba(249,115,22,.3);}.t2.sel{background:#f97316;color:#fff;border-color:#f97316;}
+.t3{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.3);}.t3.sel{background:var(--yellow);color:#111;border-color:var(--yellow);}
+.t4{background:rgba(16,185,129,.1);color:#34d399;border-color:rgba(16,185,129,.25);}.t4.sel{background:var(--green);color:#fff;border-color:var(--green);}
+.t5{background:rgba(100,116,139,.1);color:#94a3b8;border-color:rgba(100,116,139,.25);}.t5.sel{background:#475569;color:#fff;border-color:#475569;}
+.hr{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.chart-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.pt-name{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;}
+.pid-badge{background:rgba(59,130,246,.1);color:var(--accent);border:1px solid rgba(59,130,246,.2);padding:3px 9px;border-radius:4px;font-size:.68rem;font-weight:700;margin-top:4px;display:inline-block;}
+.tbl-btn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--accent);font-size:.68rem;font-weight:600;cursor:pointer;transition:.18s;font-family:'DM Sans',sans-serif;}
+.tbl-btn:hover{background:rgba(59,130,246,.1);border-color:var(--accent);}
+.tbl-btn-r{color:var(--red);}.tbl-btn-r:hover{background:rgba(239,68,68,.1);border-color:var(--red);}
+.tbl-btn-g{color:var(--green);}.tbl-btn-g:hover{background:rgba(16,185,129,.1);border-color:var(--green);}
+.staff-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:14px;display:flex;align-items:center;gap:12px;}
+.staff-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;font-family:'Syne',sans-serif;color:#fff;flex-shrink:0;}
+.stock-bar{height:5px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:4px;}
+.stock-fill{height:100%;border-radius:3px;}
+.bill-total-box{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;}
+.appt-slot{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;}
+.appt-time{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--accent);width:55px;flex-shrink:0;}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 26px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:fadeUp .2s ease;}
+.modal-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;transition:.18s;padding:0 4px;}
+.modal-close:hover{color:var(--red);}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
+
+/* ADMIN PANEL SPECIFIC */
+.admin-user-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.admin-user-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;color:#fff;flex-shrink:0;}
+.pending-badge{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.25);color:#fbbf24;border-radius:6px;padding:2px 8px;font-size:.62rem;font-weight:700;}
+.approved-badge{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#34d399;border-radius:6px;padding:2px 8px;font-size:.62rem;font-weight:700;}
+.rejected-badge{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:6px;padding:2px 8px;font-size:.62rem;font-weight:700;}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── ADMIN PANEL ── */
+.adm-tab{padding:9px 18px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .18s;}
+.adm-tab:hover{color:var(--text);}
+.adm-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.apanel{display:none;animation:fadeUp .2s ease;}
+.apanel.active{display:block;}
+.role-breakdown-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.role-breakdown-row:last-child{border-bottom:none;}
+.role-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.role-bar-fill{height:100%;border-radius:3px;transition:width .4s ease;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     AUTH SCREENS
+════════════════════════════════════════════════ -->
+<div id="authWrap">
+  <div class="auth-grid-bg"></div>
+
+  <div class="auth-card" id="loginPanel">
+
+    <!-- Brand header -->
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-icon">A</div>
+      <div>
+        <div class="auth-logo-text">AETHERA <span>CORE</span></div>
+        <div class="auth-logo-sub">Hospital Management Suite</div>
+      </div>
+    </div>
+
+    <!-- Toggle tabs -->
+    <div class="auth-toggle">
+      <button class="auth-toggle-btn active" id="toggleSignIn" onclick="Auth.showLogin()">Sign In</button>
+      <button class="auth-toggle-btn" id="toggleRegister" onclick="Auth.showRegister()">Create Account</button>
+    </div>
+
+    <!-- legacy hidden tabs for JS compat -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="Auth.showLogin()">Sign In</button>
+      <button class="auth-tab" onclick="Auth.showRegister()">Create Account</button>
+    </div>
+
+    <!-- ── SIGN IN FORM ── -->
+    <div id="loginForm">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to continue to the hospital system</div>
+      <div id="loginErr" class="auth-err"></div>
+
+      <div class="form-group">
+        <label class="form-lbl">Username</label>
+        <input class="form-inp" type="text" id="loginUsername" placeholder="Enter your username" autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom:6px;">
+        <label class="form-lbl">Password</label>
+        <input class="form-inp" type="password" id="loginPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')Auth.login()">
+      </div>
+
+      <button class="auth-btn auth-btn-primary" onclick="Auth.login()" style="margin-top:16px;">Sign In →</button>
+
+      <div class="auth-foot-link">
+        No account? <span class="auth-link" onclick="Auth.showRegister()">Create one</span>
+      </div>
+    </div>
+
+    <!-- ── REGISTER FORM ── -->
+    <div id="registerForm" style="display:none;">
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Staff registration — access granted immediately</div>
+      <div id="regErr" class="auth-err"></div>
+      <div id="regSuccess" class="auth-success"></div>
+
+      <div class="form-group">
+        <label class="form-lbl">Your Role</label>
+        <div class="role-select">
+          <div class="role-btn" id="roleDoctor" onclick="Auth.selectRole('doctor')">
+            <span class="role-ico">👨‍⚕️</span>
+            <div class="role-nm">Doctor</div>
+            <div class="role-desc">Clinical access</div>
+          </div>
+          <div class="role-btn" id="roleNurse" onclick="Auth.selectRole('nurse')">
+            <span class="role-ico">👩‍⚕️</span>
+            <div class="role-nm">Nurse</div>
+            <div class="role-desc">Staff access</div>
+          </div>
+          <div class="role-btn" id="rolePharm" onclick="Auth.selectRole('pharmacist')">
+            <span class="role-ico">💊</span>
+            <div class="role-nm">Pharmacist</div>
+            <div class="role-desc">Pharmacy</div>
+          </div>
+          <div class="role-btn" id="roleLab" onclick="Auth.selectRole('lab')">
+            <span class="role-ico">🔬</span>
+            <div class="role-nm">Lab Tech</div>
+            <div class="role-desc">Laboratory</div>
+          </div>
+          <div class="role-btn" id="roleAdmin" onclick="Auth.selectRole('admin')">
+            <span class="role-ico">⚙️</span>
+            <div class="role-nm">Admin</div>
+            <div class="role-desc">Full access</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-lbl">Full Name</label>
+        <input class="form-inp" type="text" id="regName" placeholder="e.g. Jane Doe">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Username</label>
+        <input class="form-inp" type="text" id="regUsername" placeholder="e.g. janedoe" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Password</label>
+        <input class="form-inp" type="password" id="regPass" placeholder="Choose a password" onkeyup="Auth.checkStrength()">
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill" style="width:0;"></div></div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:4px;" id="strengthText"></div>
+      </div>
+
+      <button class="auth-btn auth-btn-primary" onclick="Auth.register()">Create Account →</button>
+      <div class="auth-foot-link">
+        Already registered? <span class="auth-link" onclick="Auth.showLogin()">Sign in</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════════ -->
+<div id="appWrap">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="topbar-brand">AETHERA <span>CORE</span></div>
+      <span id="hdrAlert" style="display:none;font-size:.72rem;color:var(--yellow);font-weight:600;cursor:pointer;" onclick="goTo('triage')">Urgent triage waiting</span>
+    </div>
+    <div class="topbar-right">
+      <div id="clock-top"></div>
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar"></div>
+        <div>
+          <div class="user-name" id="userName"></div>
+          <div class="user-role" id="userRoleLabel"></div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <aside>
+      <!-- Patient Flow -->
+      <div class="nav-section">Patient Flow</div>
+      <div class="nav-item" id="nav-dash"     onclick="goTo('dash')">     <span class="nav-icon">◆</span> Dashboard</div>
+      <div class="nav-item" id="nav-triage"   onclick="goTo('triage')">   <span class="nav-icon">◆</span> Triage / OPD <span class="nav-badge nb-r" id="nb-triage">0</span></div>
+      <div class="nav-item" id="nav-reg"      onclick="goTo('reg')">      <span class="nav-icon">◆</span> Registration</div>
+      <div class="nav-item" id="nav-appt"     onclick="goTo('appt')">     <span class="nav-icon">◆</span> Appointments <span class="nav-badge nb-y" id="nb-appt">0</span></div>
+      <!-- Clinical -->
+      <div class="nav-section">Clinical</div>
+      <div class="nav-item" id="nav-db"       onclick="goTo('db')">       <span class="nav-icon">◆</span> Patient Records</div>
+      <div class="nav-item" id="nav-chart"    onclick="goTo('chart')">    <span class="nav-icon">◆</span> Clinical Chart</div>
+      <div class="nav-item" id="nav-vitals"   onclick="goTo('vitals')">   <span class="nav-icon">◆</span> Vitals</div>
+      <div class="nav-item" id="nav-lab"      onclick="goTo('lab')">      <span class="nav-icon">◆</span> Laboratory</div>
+      <!-- Operations -->
+      <div class="nav-section">Operations</div>
+      <div class="nav-item" id="nav-ward"     onclick="goTo('ward')">     <span class="nav-icon">◆</span> Ward &amp; Beds</div>
+      <div class="nav-item" id="nav-pharmacy" onclick="goTo('pharmacy')"> <span class="nav-icon">◆</span> Pharmacy</div>
+      <div class="nav-item" id="nav-billing"  onclick="goTo('billing')">  <span class="nav-icon">◆</span> Billing</div>
+      <!-- Admin only -->
+      <div class="nav-section" id="ns-admin" style="display:none;">Administration</div>
+      <div class="nav-item"  id="nav-admin"   onclick="goTo('admin')">    <span class="nav-icon">◆</span> Admin Panel <span class="nav-badge nb-r" id="nb-pending" style="display:none;"></span></div>
+      <div class="nav-item"  id="nav-staff"   onclick="goTo('staff')">    <span class="nav-icon">◆</span> Staff</div>
+      <div class="nav-item"  id="nav-ledger"  onclick="goTo('ledger')">   <span class="nav-icon">◆</span> Audit Ledger</div>
+      <div class="sidebar-foot" id="sidebarStats">Loading…</div>
+    </aside>
+
+    <!-- MAIN -->
+    <main>
+      <div class="view-wrap">
+
+        <!-- DASHBOARD -->
+        <div id="dash-view" class="view">
+          <div class="g4" id="dashStats" style="margin-bottom:16px;"></div>
+          <div class="g2">
+            <div>
+              <div class="card"><div class="card-title">🚨 Triage Queue <span id="dash-triage-count"></span></div><div id="dash-triage-list"></div></div>
+              <div class="card"><div class="card-title">📅 Today's Appointments <span id="dash-appt-count"></span></div><div id="dash-appt-list"></div></div>
+            </div>
+            <div>
+              <div class="card"><div class="card-title">Ward Bed Status</div><div id="dash-bed-summary"></div></div>
+              <div class="card"><div class="card-title">💊 Low Stock Alerts</div><div id="dash-pharma-alerts"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRIAGE -->
+        <div id="triage-view" class="view">
+          <div class="g2" style="margin-bottom:16px;">
+            <div class="card">
+              <div class="card-title">New Triage Entry</div>
+              <label class="lbl">Patient Name</label><input type="text" id="trName" placeholder="Full name">
+              <label class="lbl">Chief Complaint</label><input type="text" id="trComplaint" placeholder="e.g., chest pain">
+              <label class="lbl">Triage Level</label>
+              <div class="triage-levels">
+                <button class="triage-btn t1" onclick="App.setTriage(1)" id="tl1">T1<br><span style="font-size:.55rem;font-weight:400;">Resuscitation</span></button>
+                <button class="triage-btn t2" onclick="App.setTriage(2)" id="tl2">T2<br><span style="font-size:.55rem;font-weight:400;">Emergent</span></button>
+                <button class="triage-btn t3" onclick="App.setTriage(3)" id="tl3">T3<br><span style="font-size:.55rem;font-weight:400;">Urgent</span></button>
+                <button class="triage-btn t4" onclick="App.setTriage(4)" id="tl4">T4<br><span style="font-size:.55rem;font-weight:400;">Less Urgent</span></button>
+                <button class="triage-btn t5" onclick="App.setTriage(5)" id="tl5">T5<br><span style="font-size:.55rem;font-weight:400;">Non-Urgent</span></button>
+              </div>
+              <label class="lbl">Vitals (BP / Pulse / Temp / SpO2)</label>
+              <div class="g4">
+                <input type="text" id="trBP" placeholder="120/80"><input type="text" id="trPR" placeholder="72 bpm">
+                <input type="text" id="trTemp" placeholder="37°C"><input type="text" id="trSPO2" placeholder="98%">
+              </div>
+              <label class="lbl">Attending Nurse</label><input type="text" id="trNurse" placeholder="Name">
+              <button class="btn btn-p btn-full" onclick="App.saveTriage()">Add to Queue</button>
+            </div>
+            <div class="card"><div class="card-title">Queue <span id="triageQueueCount"></span></div><div id="triageQueue"></div></div>
+          </div>
+        </div>
+
+        <!-- REGISTRATION -->
+        <div id="reg-view" class="view">
+          <div class="mode-tog">
+            <button id="btnNew" class="mode-btn active" onclick="App.setMode('new')">＋ New Patient</button>
+            <button id="btnOld" class="mode-btn" onclick="App.setMode('old')">Returning Patient</button>
+          </div>
+          <div id="recallBox" class="recall-box">
+            <label class="lbl" style="color:#fbbf24;">Quick Recall — Search by Name or PID</label>
+            <input type="text" id="dbQuery" placeholder="Start typing…" onkeyup="App.dbSearch()">
+            <div id="resultsList"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">👤 Patient Credentials <span>MASTER RECORD</span></div>
+            <div class="g2">
+              <div>
+                <label class="lbl">Full Name</label><input type="text" id="pName" placeholder="John Doe">
+                <label class="lbl">National ID</label><input type="text" id="pID" placeholder="12345678">
+                <label class="lbl">Date of Birth</label><input type="text" id="pDOB" placeholder="01/01/1990">
+                <label class="lbl">Gender</label>
+                <select id="pGender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select>
+                <label class="lbl">Blood Group</label>
+                <select id="pBlood"><option value="">—</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+                <label class="lbl">Address</label><input type="text" id="pAddr" placeholder="123 Medical St.">
+              </div>
+              <div>
+                <label class="lbl">Phone</label><input type="text" id="pPhone" placeholder="+254 700 000 000">
+                <label class="lbl">Emergency Contact</label><input type="text" id="pKin" placeholder="Jane Doe">
+                <label class="lbl">Next-of-Kin Phone</label><input type="text" id="pKinPhone" placeholder="+254 700 000 001">
+                <label class="lbl">Relationship</label><input type="text" id="pKinRel" placeholder="e.g., Spouse">
+                <label class="lbl">Insurance</label><input type="text" id="pIns" placeholder="NHIF / BlueShield">
+                <label class="lbl">Policy Number</label><input type="text" id="pPol" placeholder="POL-5566">
+                <label class="lbl">Occupation</label><input type="text" id="pOcc" placeholder="e.g., Teacher">
+              </div>
+            </div>
+            <button id="mainBtn" class="btn btn-p btn-full" onclick="App.savePatient()">Save Patient</button>
+          </div>
+        </div>
+
+        <!-- APPOINTMENTS -->
+        <div id="appt-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">Book Appointment</div>
+              <label class="lbl">Patient</label><input type="text" id="apptPatient" placeholder="Search patient…" onkeyup="App.apptSearch()"><div id="apptSearchRes"></div>
+              <label class="lbl">Doctor</label><input type="text" id="apptDoctor" placeholder="Dr. Name">
+              <label class="lbl">Department</label>
+              <select id="apptDept"><option>General OPD</option><option>Paediatrics</option><option>Maternity</option><option>Surgery</option><option>Cardiology</option><option>Orthopaedics</option><option>Dental</option><option>Mental Health</option></select>
+              <div class="g2"><div><label class="lbl">Date</label><input type="date" id="apptDate"></div><div><label class="lbl">Time</label><input type="time" id="apptTime"></div></div>
+              <label class="lbl">Visit Type</label>
+              <select id="apptType"><option>Follow-up</option><option>New Consultation</option><option>Review Results</option><option>Procedure</option><option>Vaccination</option><option>Antenatal</option></select>
+              <label class="lbl">Notes</label><textarea id="apptNotes" rows="2" placeholder="Any notes…"></textarea>
+              <button class="btn btn-p btn-full" onclick="App.saveAppt()">Book</button>
+            </div>
+            <div class="card"><div class="card-title">Appointments <span id="apptCount"></span></div><div id="apptList"></div></div>
+          </div>
+        </div>
+
+        <!-- PATIENT RECORDS -->
+        <div id="db-view" class="view">
+          <div class="g4" id="statsRow" style="margin-bottom:16px;"></div>
+          <div class="card">
+            <div class="card-title">Patient Records <span id="dbCount"></span></div>
+            <input type="text" id="dbSearch" placeholder="🔍 Search by name, PID, ID…" onkeyup="App.renderDB()" style="max-width:340px;margin-bottom:10px;">
+            <table class="tbl">
+              <thead><tr><th>PID</th><th>Name</th><th>Gender</th><th>Blood</th><th>Last Visit</th><th>Disposition</th><th>Bed</th><th>Balance</th><th>Actions</th></tr></thead>
+              <tbody id="dbContent"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CLINICAL CHART -->
+        <div id="chart-view" class="view">
+          <div class="card">
+            <div class="chart-hdr">
+              <div>
+                <div class="pt-name" id="activePatientName">No Patient Selected</div>
+                <span class="pid-badge" id="activePIDBadge">PID: 0000</span>
+                <span class="bdg bb" id="activeBloodBadge" style="margin-left:6px;display:none;"></span>
+              </div>
+              <button class="btn btn-s" onclick="App.saveClinical()">Save Visit</button>
+            </div>
+            <hr class="hr">
+            <div class="g2">
+              <div>
+                <div class="card-title" style="margin-bottom:0;">Medical History</div>
+                <label class="lbl">Chief Complaint</label><input type="text" id="cComplaint" placeholder="e.g., headache">
+                <label class="lbl">HPI</label><textarea id="cHPI" rows="3" placeholder="Onset, duration, severity…"></textarea>
+                <label class="lbl">Past Medical History</label><textarea id="cPastHistory" rows="2" placeholder="Previous illnesses, surgeries…"></textarea>
+                <label class="lbl">Drug History &amp; Allergies</label><textarea id="cDrugHistory" rows="2" placeholder="Current meds, allergies…"></textarea>
+                <label class="lbl">Family History</label><input type="text" id="cFamilyHistory" placeholder="e.g., diabetes">
+                <label class="lbl">Social History</label><input type="text" id="cSocialHistory" placeholder="e.g., smoking, occupation risk">
+                <label class="lbl">Review of Systems</label><textarea id="cReview" rows="2" placeholder="Systemic symptoms…"></textarea>
+              </div>
+              <div>
+                <div class="card-title" style="margin-bottom:0;">Assessment &amp; Plan</div>
+                <label class="lbl">Examination Findings</label><textarea id="cExam" rows="3" placeholder="Physical exam findings…"></textarea>
+                <label class="lbl">Diagnosis</label><input type="text" id="cDiagnosis" placeholder="e.g., Malaria, Hypertension">
+                <label class="lbl">ICD-10 Code</label><input type="text" id="cICD" placeholder="e.g., B50.9">
+                <label class="lbl">Management Plan</label><textarea id="cNote" rows="3" placeholder="Treatment plan, investigations…"></textarea>
+                <div class="panel"><div class="panel-title">Prescriptions</div><div id="rxList"></div>
+                  <div class="g3" style="margin-top:8px;">
+                    <div><label class="lbl">Drug</label><input type="text" id="rxDrug" placeholder="Drug name"></div>
+                    <div><label class="lbl">Dose / Freq</label><input type="text" id="rxDose" placeholder="500mg BD"></div>
+                    <div><label class="lbl">Duration</label><input type="text" id="rxDur" placeholder="7 days"></div>
+                  </div>
+                  <button class="btn btn-g" style="margin-top:8px;font-size:.75rem;" onclick="App.addRx()">Add Drug</button>
+                </div>
+                <div class="panel"><div class="panel-title">Next Visit</div>
+                  <div class="g2"><div><label class="lbl">Date</label><input type="date" id="cNextDate"></div><div><label class="lbl">Purpose</label><input type="text" id="cNextPurpose"></div></div>
+                </div>
+                <div class="panel" style="border-left:3px solid var(--purple);"><div class="panel-title" style="color:#a78bfa;">Bed Assignment</div>
+                  <div class="g2">
+                    <div><label class="lbl">Ward</label><select id="cBedWard" onchange="App.populateBedSelect()"><option value="">— None —</option></select></div>
+                    <div><label class="lbl">Bed</label><select id="cBedNum"><option value="">— Select Ward —</option></select></div>
+                  </div>
+                </div>
+                <div class="panel"><div class="panel-title">Disposition</div>
+                  <div class="disp-g">
+                    <div class="disp-card" id="disp-return"    onclick="App.setDisp('return')">    <span class="disp-icon"></span><div class="disp-lbl">Return Visit</div></div>
+                    <div class="disp-card" id="disp-referral"  onclick="App.setDisp('referral')">  <span class="disp-icon"></span><div class="disp-lbl">Referred</div></div>
+                    <div class="disp-card" id="disp-discharge" onclick="App.setDisp('discharge')"> <span class="disp-icon"></span><div class="disp-lbl">Discharged</div></div>
+                  </div>
+                  <div class="disp-det" id="dd-return"><div class="panel" style="border-left:3px solid var(--green);"><div class="g2"><div><label class="lbl">Return Date</label><input type="date" id="cDispRD"></div><div><label class="lbl">Reason</label><input type="text" id="cDispRR"></div></div></div></div>
+                  <div class="disp-det" id="dd-referral"><div class="panel" style="border-left:3px solid var(--yellow);"><label class="lbl">Hospital</label><input type="text" id="cDispRH"><div class="g2"><div><label class="lbl">Department</label><input type="text" id="cDispRDept"></div><div><label class="lbl">Date</label><input type="date" id="cDispRDate"></div></div><label class="lbl">Reason</label><textarea id="cDispReason" rows="2"></textarea></div></div>
+                  <div class="disp-det" id="dd-discharge"><div class="panel" style="border-left:3px solid var(--red);"><label class="lbl">Discharge Summary</label><textarea id="cDispDN" rows="2"></textarea><div class="g2"><div><label class="lbl">Date</label><input type="date" id="cDispDD"></div><div><label class="lbl">Condition</label><select id="cDispDC"><option value="">—</option><option>Recovered / Well</option><option>Improved</option><option>Stable</option><option>AMA</option><option>Deceased</option></select></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VITALS -->
+        <div id="vitals-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">Record Vitals</div>
+              <label class="lbl">Patient</label><input type="text" id="vPatient" placeholder="Search patient…" onkeyup="App.vSearch()"><div id="vSearchRes"></div>
+              <div style="font-size:.72rem;color:var(--accent);margin-top:4px;" id="vActivePatient"></div>
+              <div class="g3" style="margin-top:6px;">
+                <div><label class="lbl">Blood Pressure</label><input type="text" id="vBP" placeholder="120/80 mmHg"></div>
+                <div><label class="lbl">Pulse Rate</label><input type="text" id="vPR" placeholder="72 bpm"></div>
+                <div><label class="lbl">Temperature</label><input type="text" id="vTemp" placeholder="37.0°C"></div>
+                <div><label class="lbl">SpO2</label><input type="text" id="vSPO2" placeholder="98%"></div>
+                <div><label class="lbl">Resp. Rate</label><input type="text" id="vRR" placeholder="18/min"></div>
+                <div><label class="lbl">Weight (kg)</label><input type="text" id="vWeight" placeholder="70"></div>
+                <div><label class="lbl">Height (cm)</label><input type="text" id="vHeight" placeholder="170"></div>
+                <div><label class="lbl">BMI (auto)</label><input type="text" id="vBMI" placeholder="—" readonly></div>
+                <div><label class="lbl">Blood Glucose</label><input type="text" id="vBG" placeholder="5.5 mmol/L"></div>
+              </div>
+              <label class="lbl">Notes</label><textarea id="vNotes" rows="2"></textarea>
+              <button class="btn btn-p btn-full" onclick="App.saveVitals()">Save Vitals</button>
+            </div>
+            <div class="card"><div class="card-title">Vitals Log</div>
+              <table class="tbl"><thead><tr><th>Time</th><th>Patient</th><th>BP</th><th>PR</th><th>Temp</th><th>SpO2</th><th>Wt</th></tr></thead><tbody id="vitalsLog"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LABORATORY -->
+        <div id="lab-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">Request Lab Test</div>
+              <label class="lbl">Patient</label><input type="text" id="labPatient" placeholder="Search patient…" onkeyup="App.labSearch()"><div id="labSearchRes"></div>
+              <div style="font-size:.72rem;color:var(--accent);" id="labActivePatient"></div>
+              <label class="lbl">Test Category</label>
+              <select id="labCat"><option value="">— Select —</option><option>Full Blood Count</option><option>Renal Function</option><option>Liver Function</option><option>Malaria Test</option><option>HIV Rapid Test</option><option>Urinalysis</option><option>Blood Glucose</option><option>Lipid Profile</option><option>Pregnancy Test</option><option>Stool Analysis</option><option>Culture &amp; Sensitivity</option><option>X-Ray</option><option>Ultrasound</option><option>ECG</option><option>Other</option></select>
+              <label class="lbl">Notes</label><input type="text" id="labNote" placeholder="Specific test details">
+              <label class="lbl">Priority</label><select id="labPriority"><option>Routine</option><option>Urgent</option><option>STAT</option></select>
+              <label class="lbl">Requesting Clinician</label><input type="text" id="labDoc" placeholder="Dr. Name">
+              <button class="btn btn-p btn-full" onclick="App.saveLab()">Submit Request</button>
+            </div>
+            <div class="card"><div class="card-title">Lab Requests <span id="labCount"></span></div>
+              <table class="tbl"><thead><tr><th>Time</th><th>Patient</th><th>Test</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody id="labList"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- WARD -->
+        <div id="ward-view" class="view">
+          <div class="g5" id="wardSummary" style="margin-bottom:16px;"></div>
+          <div class="card" style="padding:14px 18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div class="ward-tabs" id="wardTabs"></div>
+              <div style="display:flex;gap:7px;"><button class="btn btn-p" onclick="WardMgr.openAddWard()">+ Ward</button><button class="btn btn-g" onclick="WardMgr.openAddBeds()">+ Beds</button></div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Free</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Occupied</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div>Reserved</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#475569"></div>Maintenance</div>
+          </div>
+          <div class="card"><div class="card-title" id="wardGridTitle">Beds</div><div class="bed-grid" id="bedGrid"></div><div id="bedGridEmpty" style="display:none;color:var(--muted);font-size:.82rem;padding:16px 0;">No beds yet. Click "+ Beds".</div></div>
+        </div>
+
+        <!-- PHARMACY -->
+        <div id="pharmacy-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">Drug Inventory</div>
+              <label class="lbl">Drug Name</label><input type="text" id="drugName" placeholder="e.g., Amoxicillin 500mg">
+              <label class="lbl">Category</label><select id="drugCat"><option>Antibiotic</option><option>Analgesic</option><option>Antimalaria</option><option>Antihypertensive</option><option>Antiretroviral</option><option>Antidiabetic</option><option>IV Fluid</option><option>Supplement</option><option>Vaccine</option><option>Other</option></select>
+              <div class="g2"><div><label class="lbl">Quantity</label><input type="number" id="drugQty" placeholder="0" min="0"></div><div><label class="lbl">Unit</label><select id="drugUnit"><option>Tablets</option><option>Capsules</option><option>Bottles</option><option>Vials</option><option>Sachets</option><option>Ampoules</option></select></div></div>
+              <div class="g2"><div><label class="lbl">Reorder Level</label><input type="number" id="drugReorder" placeholder="10"></div><div><label class="lbl">Unit Price</label><input type="number" id="drugPrice" placeholder="0.00" step="0.01"></div></div>
+              <label class="lbl">Expiry Date</label><input type="date" id="drugExpiry">
+              <label class="lbl">Supplier</label><input type="text" id="drugSupplier" placeholder="Supplier name">
+              <button class="btn btn-p btn-full" onclick="Pharma.saveDrug()">Save to Inventory</button>
+            </div>
+            <div class="card">
+              <div class="card-title">Stock List <span id="pharmaCount"></span></div>
+              <input type="text" id="pharmaSearch" placeholder="🔍 Search drugs…" onkeyup="Pharma.render()" style="margin-bottom:10px;">
+              <table class="tbl"><thead><tr><th>Drug</th><th>Cat</th><th>Stock</th><th>Price</th><th>Expiry</th><th></th></tr></thead><tbody id="pharmaList"></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Dispense</div>
+            <div class="g3"><div><label class="lbl">Patient PID</label><input type="text" id="dispPatient" placeholder="PID-XXXXX"></div><div><label class="lbl">Drug</label><select id="dispDrug"><option value="">— Select —</option></select></div><div><label class="lbl">Qty</label><input type="number" id="dispQty" value="1" min="1"></div></div>
+            <div class="g2"><div><label class="lbl">Instructions</label><input type="text" id="dispInstr" placeholder="1 tab TDS after meals"></div><div style="display:flex;align-items:flex-end;"><button class="btn btn-s btn-full" style="margin-top:0;" onclick="Pharma.dispense()">Dispense</button></div></div>
+          </div>
+        </div>
+
+        <!-- BILLING -->
+        <div id="billing-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">Create Invoice</div>
+              <label class="lbl">Patient</label><input type="text" id="billPatient" placeholder="Search patient…" onkeyup="App.billSearch()"><div id="billSearchRes"></div>
+              <div style="font-size:.72rem;color:var(--accent);margin-top:4px;" id="billActivePatient"></div>
+              <div id="billItems" style="margin-top:12px;"></div>
+              <div class="g3" style="margin-top:8px;"><div><label class="lbl">Description</label><input type="text" id="billDesc" placeholder="e.g., Consultation fee"></div><div><label class="lbl">Qty</label><input type="number" id="billQtyI" value="1" min="1"></div><div><label class="lbl">Unit Price</label><input type="number" id="billUnit" placeholder="0.00" step="0.01"></div></div>
+              <button class="btn btn-g" style="margin-top:8px;font-size:.75rem;" onclick="Billing.addItem()">＋ Add Line</button>
+              <div class="bill-total-box"><span style="font-weight:700;">Total</span><span style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--accent);">KES <span id="billTotal">0.00</span></span></div>
+              <div class="g2"><div><label class="lbl">Payment Method</label><select id="billMethod"><option>Cash</option><option>NHIF / Insurance</option><option>M-Pesa</option><option>Bank Transfer</option><option>Credit (Pending)</option></select></div><div><label class="lbl">Amount Paid</label><input type="number" id="billPaid" placeholder="0.00" step="0.01" oninput="Billing.calcBalance()"></div></div>
+              <div class="bill-total-box" style="margin-top:8px;background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2);"><span style="font-weight:700;">Balance Due</span><span style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--red);">KES <span id="billBalance">0.00</span></span></div>
+              <button class="btn btn-s btn-full" onclick="Billing.saveInvoice()">🧾 Issue Invoice</button>
+            </div>
+            <div class="card"><div class="card-title">🧾 Invoice History <span id="invoiceCount"></span></div>
+              <table class="tbl"><thead><tr><th>Invoice</th><th>Patient</th><th>Total</th><th>Paid</th><th>Balance</th><th>Method</th><th>Date</th></tr></thead><tbody id="invoiceList"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <div id="admin-view" class="view">
+
+          <!-- ADMIN TAB NAV -->
+          <div style="display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;">
+            <button class="adm-tab active" id="atab-overview" onclick="adminTab('overview')">Overview</button>
+            <button class="adm-tab" id="atab-users" onclick="adminTab('users')">User Management</button>
+            <button class="adm-tab" id="atab-create" onclick="adminTab('create')">Create Account</button>
+            <button class="adm-tab" id="atab-logs" onclick="adminTab('logs')">Audit Log</button>
+          </div>
+
+          <!-- ── OVERVIEW TAB ── -->
+          <div id="apanel-overview" class="apanel active">
+            <div class="g4" style="margin-bottom:20px;">
+              <div class="stat"><div class="stat-val ca" id="adminStatUsers">0</div><div class="stat-lbl">Total Users</div></div>
+              <div class="stat"><div class="stat-val cg" id="adminStatActive">0</div><div class="stat-lbl">Active Accounts</div></div>
+              <div class="stat"><div class="stat-val cr" id="adminStatDisabled">0</div><div class="stat-lbl">Disabled Accounts</div></div>
+              <div class="stat"><div class="stat-val cp" id="adminStatAdmins">0</div><div class="stat-lbl">Administrators</div></div>
+            </div>
+            <div class="g2">
+              <div class="card">
+                <div class="card-title">Role Breakdown</div>
+                <div id="adminRoleBreakdown"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Recent Activity</div>
+                <div id="adminRecentActivity"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── USER MANAGEMENT TAB ── -->
+          <div id="apanel-users" class="apanel" style="display:none;">
+            <div class="card">
+              <div class="card-title">System Users <span id="allUsersCount"></span>
+                <input type="text" id="adminUserSearch" placeholder="Search users…" onkeyup="filterAdminUsers()" style="width:200px;padding:5px 10px;font-size:.78rem;">
+              </div>
+              <div id="allUsersList"></div>
+            </div>
+          </div>
+
+          <!-- ── CREATE ACCOUNT TAB ── -->
+          <div id="apanel-create" class="apanel" style="display:none;">
+            <div class="card" style="max-width:480px;">
+              <div class="card-title">New Staff Account</div>
+              <div id="createAccErr" class="auth-err"></div>
+              <div id="createAccSuccess" class="auth-success"></div>
+              <label class="lbl">Full Name</label>
+              <input type="text" id="newAdminName" placeholder="e.g. Jane Doe" onkeydown="if(event.key==='Enter')Auth.createAdmin()">
+              <label class="lbl">Username</label>
+              <input type="text" id="newAdminEmail" placeholder="e.g. janedoe" autocomplete="off" onkeydown="if(event.key==='Enter')Auth.createAdmin()">
+              <label class="lbl">Password</label>
+              <input type="password" id="newAdminPass" placeholder="Set a password" onkeydown="if(event.key==='Enter')Auth.createAdmin()">
+              <label class="lbl">Role</label>
+              <select id="newAccRoleSelect" style="margin-bottom:4px;">
+                <option value="doctor">Doctor / Clinician</option>
+                <option value="nurse">Nurse / Nurse Officer</option>
+                <option value="pharmacist">Pharmacist</option>
+                <option value="lab">Lab Technician</option>
+                <option value="admin">Administrator</option>
+              </select>
+              <button class="btn btn-p btn-full" onclick="Auth.createAdmin()">Create Account →</button>
+            </div>
+          </div>
+
+          <!-- ── AUDIT LOG TAB ── -->
+          <div id="apanel-logs" class="apanel" style="display:none;">
+            <div class="card">
+              <div class="card-title">Audit Log
+                <button class="btn btn-g" style="font-size:.72rem;padding:4px 10px;" onclick="App.renderLedger();adminTab('logs')">Refresh</button>
+              </div>
+              <table class="tbl">
+                <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+                <tbody id="ledgerContent"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STAFF -->
+        <div id="staff-view" class="view">
+          <div class="g2">
+            <div class="card">
+              <div class="card-title">👨‍⚕️ Add Staff</div>
+              <div class="g2">
+                <div><label class="lbl">Full Name</label><input type="text" id="sfName" placeholder="Dr. Jane Doe"></div>
+                <div><label class="lbl">Staff ID</label><input type="text" id="sfID" placeholder="STF-001"></div>
+              </div>
+              <div class="g2">
+                <div><label class="lbl">Role</label><select id="sfRole"><option>Doctor</option><option>Nurse</option><option>Clinical Officer</option><option>Lab Technician</option><option>Pharmacist</option><option>Radiographer</option><option>Receptionist</option><option>Administrator</option></select></div>
+                <div><label class="lbl">Department</label><select id="sfDept"><option>OPD</option><option>Emergency</option><option>Maternity</option><option>Paediatrics</option><option>Surgery</option><option>ICU</option><option>Laboratory</option><option>Pharmacy</option></select></div>
+              </div>
+              <div class="g2">
+                <div><label class="lbl">Phone</label><input type="text" id="sfPhone" placeholder="+254..."></div>
+                <div><label class="lbl">Status</label><select id="sfStatus"><option>On Duty</option><option>Off Duty</option><option>On Leave</option><option>Night Shift</option></select></div>
+              </div>
+              <label class="lbl">Qualification</label><input type="text" id="sfSpec" placeholder="e.g., MB ChB, BScN">
+              <button class="btn btn-p btn-full" onclick="App.saveStaff()">➕ Add Staff</button>
+            </div>
+            <div class="card"><div class="card-title">👥 Staff Directory <span id="staffCount"></span></div><div id="staffGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div></div>
+          </div>
+        </div>
+
+        <!-- AUDIT LEDGER -->
+        <div id="ledger-view" class="view">
+          <div class="card">
+            <div class="card-title">🛡️ Audit Ledger <span>FORENSIC TRAIL</span></div>
+            <table class="tbl"><thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+            <tbody id="ledgerContent" style="font-family:'Courier New',monospace;font-size:.72rem;"></tbody></table>
+          </div>
+        </div>
+
+      </div><!-- /view-wrap -->
+    </main>
+  </div><!-- /app-body -->
+</div><!-- /appWrap -->
+
+<!-- MODALS -->
+<div class="modal-ov" id="bedModal"><div class="modal"><div class="modal-title"><span id="bedModalTitle">Bed</span><button class="modal-close" onclick="closeModal('bedModal')">✕</button></div><div id="bedModalBody"></div><div class="modal-actions" id="bedModalActions"></div></div></div>
+<div class="modal-ov" id="addWardModal"><div class="modal"><div class="modal-title">＋ New Ward <button class="modal-close" onclick="closeModal('addWardModal')">✕</button></div><label class="lbl">Ward Name</label><input type="text" id="newWardName" placeholder="e.g., Isolation Ward"><div class="modal-actions"><button class="btn btn-g" onclick="closeModal('addWardModal')">Cancel</button><button class="btn btn-p" onclick="WardMgr.addWard()">Create</button></div></div></div>
+<div class="modal-ov" id="addBedModal"><div class="modal"><div class="modal-title">＋ Add Beds <button class="modal-close" onclick="closeModal('addBedModal')">✕</button></div><label class="lbl">Ward</label><select id="addBedWardSel"></select><label class="lbl">Number of Beds</label><input type="number" id="addBedCount" value="5" min="1" max="100"><div class="modal-actions"><button class="btn btn-g" onclick="closeModal('addBedModal')">Cancel</button><button class="btn btn-p" onclick="WardMgr.addBeds()">Add</button></div></div></div>
+<div class="modal-ov" id="labResultModal"><div class="modal"><div class="modal-title"><span id="labResTitle">🔬 Enter Result</span><button class="modal-close" onclick="closeModal('labResultModal')">✕</button></div><input type="hidden" id="labResIdx"><label class="lbl">Result</label><textarea id="labResText" rows="4" placeholder="Enter result…"></textarea><label class="lbl">Status</label><select id="labResStatus"><option>Completed</option><option>Pending</option></select><div class="modal-actions"><button class="btn btn-g" onclick="closeModal('labResultModal')">Cancel</button><button class="btn btn-s" onclick="App.saveLabResult()">Save</button></div></div></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ══════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════ */
+const LS=(k,v)=>{if(v===undefined){try{return JSON.parse(localStorage.getItem(k))||null;}catch{return null;}}localStorage.setItem(k,JSON.stringify(v));};
+const uid=(p='ID')=>p+'-'+Math.floor(10000+Math.random()*90000);
+const ts=()=>new Date().toLocaleString();
+const today=()=>new Date().toLocaleDateString();
+const el=id=>document.getElementById(id);
+const val=id=>el(id)?el(id).value:'';
+const closeModal=id=>el(id).classList.remove('open');
+
+/* ══════════════════════════════════════════════════
+   AUTH ENGINE
+══════════════════════════════════════════════════ */
+const Auth={
+  currentUser:null,
+  selectedRole:null,
+
+  init(){
+    // Seed default admin if none
+    let users=LS('aethera_users')||[];
+    if(!users.find(u=>u.email==='admin@aethera.com')){
+      users.push({id:'USR-ADMIN',name:'System Administrator',username:'admin',email:'admin@aethera.com',password:'Admin@1234',role:'admin',dept:'Administration',status:'approved',staffId:'ADMIN-001',created:today()});
+      LS('aethera_users',users);
+    }
+    // Check session
+    const sess=LS('aethera_session');
+    if(sess){const u=users.find(x=>x.id===sess.id&&x.status==='approved');if(u){this.currentUser=u;this.launchApp();return;}}
+    el('authWrap').style.display='flex';
+  },
+
+  selectRole(role){
+    this.selectedRole=role;
+    ['roleDoctor','roleNurse','rolePharm','roleLab','roleAdmin'].forEach(id=>{
+      const e=el(id);if(e)e.className='role-btn';
+    });
+    const map={doctor:'roleDoctor',nurse:'roleNurse',pharmacist:'rolePharm',lab:'roleLab',admin:'roleAdmin'};
+    const e=el(map[role]);if(e)e.classList.add('role-selected');
+  },
+
+  checkStrength(){
+    const p=val('regPass');let s=0;
+    if(p.length>=8)s++;if(/[A-Z]/.test(p))s++;if(/[0-9]/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;
+    const colors=['','#ef4444','#f59e0b','#3b82f6','#10b981'];
+    const labels=['','Weak','Fair','Good','Strong'];
+    el('strengthFill').style.width=(s*25)+'%';
+    el('strengthFill').style.background=colors[s]||'#ef4444';
+    el('strengthText').innerText=labels[s]||'Enter a password';
+  },
+
+  showLogin(){
+    el('loginForm').style.display='block';
+    el('registerForm').style.display='none';
+    const si=el('toggleSignIn'),sr=el('toggleRegister');
+    if(si){si.classList.add('active');}if(sr){sr.classList.remove('active');}
+  },
+  showRegister(){
+    el('loginForm').style.display='none';
+    el('registerForm').style.display='block';
+    const si=el('toggleSignIn'),sr=el('toggleRegister');
+    if(si){si.classList.remove('active');}if(sr){sr.classList.add('active');}
+  },
+
+  login(){
+    const username=val('loginUsername').trim().toLowerCase();
+    const pass=val('loginPass');
+    const errEl=el('loginErr');
+    errEl.style.display='none';
+    if(!username||!pass){errEl.innerText='Please enter username and password.';errEl.style.display='block';return;}
+    const users=LS('aethera_users')||[];
+    const user=users.find(u=>(u.username||'').toLowerCase()===username&&u.password===pass);
+    if(!user){errEl.innerText='Incorrect username or password.';errEl.style.display='block';return;}
+    if(user.status==='rejected'){errEl.innerText='This account has been disabled. Contact admin.';errEl.style.display='block';return;}
+    this.currentUser=user;
+    LS('aethera_session',{id:user.id});
+    App.log('LOGIN',user.id,`${user.name} (${user.role}) signed in`,'bg');
+    this.launchApp();
+  },
+
+  register(){
+    const errEl=el('regErr'),sucEl=el('regSuccess');
+    errEl.style.display='none';sucEl.style.display='none';
+    const name=val('regName').trim();
+    const username=val('regUsername').trim().toLowerCase();
+    const pass=val('regPass');
+    if(!this.selectedRole){errEl.innerText='Please select your role.';errEl.style.display='block';return;}
+    if(!name){errEl.innerText='Please enter your full name.';errEl.style.display='block';return;}
+    if(!username){errEl.innerText='Please choose a username.';errEl.style.display='block';return;}
+    if(pass.length<4){errEl.innerText='Password must be at least 4 characters.';errEl.style.display='block';return;}
+    const users=LS('aethera_users')||[];
+    if(users.find(u=>(u.username||'').toLowerCase()===username)){errEl.innerText='That username is already taken. Try another.';errEl.style.display='block';return;}
+    const newUser={id:uid('USR'),name,username,email:username+'@aethera.local',password:pass,role:this.selectedRole,dept:'General OPD',staffId:uid('STF'),status:'approved',created:today()};
+    users.push(newUser);LS('aethera_users',users);
+    sucEl.innerHTML='<b>✅ Account created successfully!</b><br>Redirecting to sign in…';
+    sucEl.style.display='block';
+    ['regName','regUsername','regPass'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    this.selectedRole=null;
+    ['roleDoctor','roleNurse','rolePharm','roleLab'].forEach(id=>{const e=el(id);if(e){e.className='role-btn';}});
+    setTimeout(()=>{
+      sucEl.style.display='none';
+      if(el('loginUsername'))el('loginUsername').value=username;
+      this.showLogin();
+    },2000);
+  },
+
+  selectedNewRole:null,
+  selectNewRole(role){
+    this.selectedNewRole=role;
+    ['newAccRoleDoctor','newAccRoleNurse','newAccRolePharm','newAccRoleLab','newAccRoleAdmin'].forEach(id=>{
+      const e=el(id);if(e)e.className='role-btn';
+    });
+    const map={doctor:'newAccRoleDoctor',nurse:'newAccRoleNurse',pharmacist:'newAccRolePharm',lab:'newAccRoleLab',admin:'newAccRoleAdmin'};
+    const e=el(map[role]);if(e)e.classList.add('role-selected');
+  },
+  createAdmin(){
+    const errEl=el('createAccErr'),sucEl=el('createAccSuccess');
+    if(errEl)errEl.style.display='none';if(sucEl)sucEl.style.display='none';
+    const name=val('newAdminName').trim();
+    const username=val('newAdminEmail').trim().toLowerCase();
+    const pass=val('newAdminPass');
+    const role=val('newAccRoleSelect');
+    if(!role){if(errEl){errEl.innerText='Please select a role.';errEl.style.display='block';}return;}
+    if(!name){if(errEl){errEl.innerText='Enter a full name.';errEl.style.display='block';}return;}
+    if(!username){if(errEl){errEl.innerText='Enter a username.';errEl.style.display='block';}return;}
+    if(pass.length<4){if(errEl){errEl.innerText='Password must be at least 4 characters.';errEl.style.display='block';}return;}
+    const users=LS('aethera_users')||[];
+    if(users.find(u=>(u.username||'').toLowerCase()===username)){if(errEl){errEl.innerText='Username already exists.';errEl.style.display='block';}return;}
+    users.push({id:uid('USR'),name,username,email:username+'@aethera.local',password:pass,role,dept:'Administration',staffId:uid('ADM'),status:'approved',created:today()});
+    LS('aethera_users',users);
+    App.log('ACCOUNT CREATED',username,`New ${role} account: ${name}`,'bp');
+    el('newAdminName').value='';el('newAdminEmail').value='';el('newAdminPass').value='';
+    this.selectedNewRole=null;
+    if(sucEl){sucEl.innerHTML=`<b>Account created!</b> @${username} can now sign in.`;sucEl.style.display='block';setTimeout(()=>{if(sucEl)sucEl.style.display='none';},3000);}
+    this.renderAdminPanel();
+  },
+
+  logout(){
+    this.currentUser=null;localStorage.removeItem('aethera_session');
+    el('appWrap').classList.remove('visible');el('authWrap').style.display='flex';
+    if(el('loginUsername'))el('loginUsername').value='';el('loginPass').value='';el('loginErr').style.display='none';
+    this.showLogin();
+  },
+
+  launchApp(){
+    el('authWrap').style.display='none';
+    el('appWrap').classList.add('visible');
+    const u=this.currentUser;
+    // Set user chip
+    const roleColors={admin:'var(--purple)',doctor:'var(--accent)',nurse:'var(--green)',pharmacist:'var(--cyan)',lab:'var(--yellow)'};
+    el('userAvatar').style.background=roleColors[u.role]||'var(--muted)';
+    el('userAvatar').innerText=u.name.charAt(0).toUpperCase();
+    el('userName').innerText=u.name;
+    el('userRoleLabel').innerText=u.role.charAt(0).toUpperCase()+u.role.slice(1)+' — '+u.dept;
+    // Admin-only nav items
+    // First unlock all nav items
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('locked'));
+    if(u.role==='admin'){
+      // Admin: full access to everything
+      el('ns-admin').style.display='block';
+      el('nav-admin').style.display='flex';
+      el('nav-staff').style.display='flex';
+      el('nav-ledger').style.display='flex';
+    } else {
+      el('ns-admin').style.display='none';
+      el('nav-admin').style.display='none';
+      el('nav-staff').style.display='none';
+      el('nav-ledger').style.display='none';
+      // Role-based restrictions
+      if(u.role==='lab'){
+        el('nav-billing').classList.add('locked');
+        el('nav-ward').classList.add('locked');
+      }
+      if(u.role==='pharmacist'){
+        ['nav-triage','nav-reg','nav-appt','nav-db','nav-chart','nav-vitals','nav-lab','nav-ward'].forEach(id=>{
+          const e=el(id);if(e)e.classList.add('locked');
+        });
+      }
+      if(u.role==='nurse'){
+        ['nav-chart','nav-pharmacy','nav-billing'].forEach(id=>{
+          const e=el(id);if(e)e.classList.add('locked');
+        });
+      }
+    }
+    App.init();
+    if(u.role==='admin')this.renderAdminPanel();
+    goTo('dash');
+  },
+
+  renderAdminPanel(){
+    const users=LS('aethera_users')||[];
+    const disabled=users.filter(u=>u.status==='rejected');
+    const active=users.filter(u=>u.status!=='rejected');
+    const admins=users.filter(u=>u.role==='admin');
+    if(el('adminStatUsers'))el('adminStatUsers').innerText=users.length;
+    if(el('adminStatActive'))el('adminStatActive').innerText=active.length;
+    if(el('adminStatDisabled'))el('adminStatDisabled').innerText=disabled.length;
+    if(el('adminStatAdmins'))el('adminStatAdmins').innerText=admins.length;
+    if(el('allUsersCount'))el('allUsersCount').innerText=users.length+' TOTAL';
+    el('nb-pending').style.display='none';
+
+    const roleColors={admin:'var(--purple)',doctor:'var(--accent)',nurse:'var(--green)',pharmacist:'var(--cyan)',lab:'var(--yellow)',receptionist:'var(--pink)'};
+    const roleHex={admin:'#8b5cf6',doctor:'#3b82f6',nurse:'#10b981',pharmacist:'#06b6d4',lab:'#f59e0b'};
+
+    // Role breakdown
+    const roles=['doctor','nurse','pharmacist','lab','admin'];
+    const roleLabels={doctor:'Doctor',nurse:'Nurse',pharmacist:'Pharmacist',lab:'Lab Tech',admin:'Admin'};
+    if(el('adminRoleBreakdown')){
+      el('adminRoleBreakdown').innerHTML=roles.map(r=>{
+        const count=users.filter(u=>u.role===r).length;
+        const pct=users.length?Math.round(count/users.length*100):0;
+        return`<div class="role-breakdown-row">
+          <div style="width:80px;font-size:.75rem;font-weight:600;color:${roleHex[r]||'var(--muted)'};">${roleLabels[r]}</div>
+          <div class="role-bar-wrap"><div class="role-bar-fill" style="width:${pct}%;background:${roleHex[r]||'var(--muted)'};"></div></div>
+          <div style="width:30px;text-align:right;font-size:.75rem;color:var(--muted);">${count}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Recent activity
+    if(el('adminRecentActivity')){
+      const logs=(LS('aethera_logs')||[]).slice(0,6);
+      el('adminRecentActivity').innerHTML=logs.length?logs.map(l=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span class="bdg ${l.cls}" style="flex-shrink:0;font-size:.58rem;">${l.action}</span>
+          <span style="font-size:.75rem;flex:1;">${l.details}</span>
+          <span style="font-size:.65rem;color:var(--muted);flex-shrink:0;">${l.time.split(',')[1]||l.time}</span>
+        </div>`).join(''):'<div style="color:var(--muted);font-size:.78rem;padding:12px 0;">No activity yet.</div>';
+    }
+
+    // User list
+    if(el('allUsersList')){
+      el('allUsersList').innerHTML=users.map(u=>`
+        <div class="admin-user-row" data-name="${u.name.toLowerCase()}" data-role="${u.role}">
+          <div class="admin-user-av" style="background:${roleColors[u.role]||'var(--muted)'};">${u.name.charAt(0)}</div>
+          <div style="flex-grow:1;min-width:0;">
+            <div style="font-weight:700;font-size:.85rem;">${u.name} ${u.id===this.currentUser.id?'<span style="font-size:.62rem;color:var(--accent);">(You)</span>':''}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">@${u.username||u.email} &nbsp;·&nbsp; <span style="text-transform:capitalize;">${u.role}</span> &nbsp;·&nbsp; Joined ${u.created}</div>
+          </div>
+          <span class="${u.status==='rejected'?'rejected-badge':'approved-badge'}">${u.status==='rejected'?'Disabled':'Active'}</span>
+          ${u.id!==this.currentUser.id?`
+            <div style="display:flex;gap:6px;">
+              ${u.status==='rejected'
+                ?`<button class="btn btn-s" style="padding:5px 12px;font-size:.75rem;" onclick="Auth.enableUser('${u.id}')">Enable</button>`
+                :`<button class="btn btn-y" style="padding:5px 12px;font-size:.75rem;color:#111;" onclick="Auth.disableUser('${u.id}')">Disable</button>`}
+              <button class="tbl-btn tbl-btn-r" onclick="Auth.deleteUser('${u.id}')">Delete</button>
+            </div>`:''}
+        </div>`).join('');
+    }
+  },
+  enableUser(id){
+    const users=LS('aethera_users')||[];const u=users.find(x=>x.id===id);if(!u)return;
+    u.status='approved';LS('aethera_users',users);
+    App.log('USER ENABLED',id,`${u.name} re-enabled by admin`,'bg');
+    this.renderAdminPanel();
+  },
+  disableUser(id){
+    if(!confirm('Disable this account? They will not be able to log in.'))return;
+    const users=LS('aethera_users')||[];const u=users.find(x=>x.id===id);if(!u)return;
+    u.status='rejected';LS('aethera_users',users);
+    App.log('USER DISABLED',id,`${u.name} disabled by admin`,'br');
+    this.renderAdminPanel();
+  },
+  deleteUser(id){
+    if(!confirm('Delete this user account?'))return;
+    let users=LS('aethera_users')||[];const u=users.find(x=>x.id===id);
+    users=users.filter(x=>x.id!==id);LS('aethera_users',users);
+    App.log('USER DELETED',id,`${u?u.name:'User'} deleted by admin`,'br');
+    this.renderAdminPanel();
+  }
+};
+
+/* ══════════════════════════════════════════════════
+   WARD MANAGER
+══════════════════════════════════════════════════ */
+const WardMgr={
+  wards:[],activeIdx:0,
+  load(){
+    this.wards=LS('aethera_wards')||[];
+    if(!this.wards.length){
+      [['General Ward',10],['Maternity Ward',8],['Paediatric Ward',8],['ICU',6],['Surgical Ward',10]].forEach(([name,n])=>{
+        const id='ward-'+Date.now()+Math.random();const pre=name.substring(0,3).toUpperCase();const beds=[];
+        for(let i=1;i<=n;i++)beds.push({num:pre+'-'+String(i).padStart(2,'0'),status:'free',patient:'',patientPID:'',notes:''});
+        this.wards.push({id,name,beds});
+      });this.save();
+    }
+  },
+  save(){LS('aethera_wards',this.wards);},
+  render(){this.load();this.renderTabs();this.renderGrid(this.activeIdx);this.renderSummary();this.populateSelects();},
+  renderTabs(){el('wardTabs').innerHTML=this.wards.map((w,i)=>{const f=w.beds.filter(b=>b.status==='free').length;return`<div class="ward-tab ${i===this.activeIdx?'active':''}" onclick="WardMgr.switchWard(${i})">${w.name} <span style="font-size:.6rem;opacity:.75;">${f} free</span></div>`;}).join('');},
+  renderGrid(idx){
+    const w=this.wards[idx];if(!w)return;
+    el('wardGridTitle').innerHTML=`${w.name} <span>${w.beds.filter(b=>b.status==='free').length} FREE / ${w.beds.length}</span>`;
+    el('bedGridEmpty').style.display=w.beds.length?'none':'block';
+    const icons={free:'🛏️',occupied:'🧑‍⚕️',reserved:'🔒',maintenance:'🔧'};
+    const cls={free:'bf',occupied:'bo',reserved:'br2',maintenance:'bm'};
+    el('bedGrid').innerHTML=w.beds.map((b,bi)=>`<div class="bed-tile ${cls[b.status]}" onclick="WardMgr.openBedModal(${idx},${bi})"><span class="bed-icon">${icons[b.status]}</span><div class="bed-num">Bed ${b.num}</div><div class="bed-slbl">${b.status}</div>${b.patient?`<div class="bed-pname">${b.patient}</div>`:''}</div>`).join('');
+  },
+  renderSummary(){
+    let tot=0,fr=0,oc=0,re=0,mt=0;
+    this.wards.forEach(w=>w.beds.forEach(b=>{tot++;fr+=b.status==='free'?1:0;oc+=b.status==='occupied'?1:0;re+=b.status==='reserved'?1:0;mt+=b.status==='maintenance'?1:0;}));
+    el('wardSummary').innerHTML=`<div class="stat"><div class="stat-val ca">${tot}</div><div class="stat-lbl">Total</div></div><div class="stat"><div class="stat-val cg">${fr}</div><div class="stat-lbl">Free</div></div><div class="stat"><div class="stat-val cr">${oc}</div><div class="stat-lbl">Occupied</div></div><div class="stat"><div class="stat-val cy">${re}</div><div class="stat-lbl">Reserved</div></div><div class="stat"><div class="stat-val" style="color:#94a3b8">${mt}</div><div class="stat-lbl">Maintenance</div></div>`;
+    el('sidebarStats').innerHTML=`👥 ${App.db.length} patients<br>${fr}/${tot} beds free<br>💊 ${(LS('aethera_drugs')||[]).length} drugs`;
+    App.renderDashBeds(tot,fr,oc);
+  },
+  populateSelects(){
+    const opts=this.wards.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+    ['addBedWardSel'].forEach(id=>{const e=el(id);if(e)e.innerHTML=opts;});
+    const cw=el('cBedWard');if(cw)cw.innerHTML='<option value="">— None —</option>'+opts;
+  },
+  switchWard(i){this.activeIdx=i;this.renderTabs();this.renderGrid(i);},
+  openBedModal(wi,bi){
+    const w=this.wards[wi],b=w.beds[bi];
+    el('bedModalTitle').innerText=`Bed ${b.num} — ${w.name}`;
+    const sc={free:'#34d399',occupied:'#f87171',reserved:'#fbbf24',maintenance:'#94a3b8'};
+    el('bedModalBody').innerHTML=`<div style="margin-bottom:12px;"><span style="font-size:.68rem;color:var(--muted);">Status</span><br><span style="font-size:.95rem;font-weight:700;color:${sc[b.status]}">${b.status.toUpperCase()}</span>${b.patient?` — <span style="font-size:.8rem;color:var(--muted)">${b.patient}</span>`:''}</div><label class="lbl">Change Status</label><select id="bmStatus"><option value="free" ${b.status==='free'?'selected':''}>Free</option><option value="occupied" ${b.status==='occupied'?'selected':''}>🧑‍⚕️ Occupied</option><option value="reserved" ${b.status==='reserved'?'selected':''}>🔒 Reserved</option><option value="maintenance" ${b.status==='maintenance'?'selected':''}>🔧 Maintenance</option></select><label class="lbl">Patient Name</label><input type="text" id="bmPName" value="${b.patient||''}"><label class="lbl">Patient PID</label><input type="text" id="bmPPID" value="${b.patientPID||''}"><label class="lbl">Notes</label><input type="text" id="bmNotes" value="${b.notes||''}">`;
+    el('bedModalActions').innerHTML=`<button class="btn btn-d" onclick="WardMgr.deleteBed(${wi},${bi})">🗑 Remove</button><button class="btn btn-g" onclick="closeModal('bedModal')">Cancel</button><button class="btn btn-p" onclick="WardMgr.saveBed(${wi},${bi})">Save</button>`;
+    el('bedModal').classList.add('open');
+  },
+  saveBed(wi,bi){const b=this.wards[wi].beds[bi];b.status=val('bmStatus');b.patient=val('bmPName');b.patientPID=val('bmPPID');b.notes=val('bmNotes');this.save();closeModal('bedModal');this.renderGrid(wi);this.renderSummary();this.renderTabs();App.log('BED UPDATE',`Bed ${b.num}`,`${this.wards[wi].name}: now ${b.status}`+(b.patient?' ('+b.patient+')':''),'bp');},
+  deleteBed(wi,bi){if(!confirm('Remove bed?'))return;this.wards[wi].beds.splice(bi,1);this.save();closeModal('bedModal');this.renderGrid(wi);this.renderSummary();this.renderTabs();},
+  openAddWard(){el('newWardName').value='';el('addWardModal').classList.add('open');},
+  addWard(){const n=val('newWardName').trim();if(!n)return alert('Name required.');const id='ward-'+Date.now();this.wards.push({id,name:n,beds:[]});this.save();App.log('WARD CREATED',id,`Ward: ${n}`,'bp');closeModal('addWardModal');this.activeIdx=this.wards.length-1;this.render();},
+  openAddBeds(){this.populateSelects();el('addBedCount').value=5;el('addBedModal').classList.add('open');},
+  addBeds(){const wardId=val('addBedWardSel'),count=parseInt(val('addBedCount'))||1;const w=this.wards.find(x=>x.id===wardId);if(!w)return;const pre=w.name.substring(0,3).toUpperCase();for(let i=0;i<count;i++){const num=pre+'-'+String(w.beds.length+1).padStart(2,'0');w.beds.push({num,status:'free',patient:'',patientPID:'',notes:''});}this.save();App.log('BEDS ADDED',wardId,`${count} beds → ${w.name}`,'bp');closeModal('addBedModal');this.activeIdx=this.wards.findIndex(x=>x.id===wardId);this.render();},
+  allBeds(wardId){const w=this.wards.find(x=>x.id===wardId);return w?w.beds:[];},
+  totalFree(){let f=0;this.wards.forEach(w=>w.beds.forEach(b=>{if(b.status==='free')f++;}));return f;},
+};
+
+/* ══════════════════════════════════════════════════
+   PHARMACY
+══════════════════════════════════════════════════ */
+const Pharma={
+  drugs:[],load(){this.drugs=LS('aethera_drugs')||[];},save(){LS('aethera_drugs',this.drugs);},
+  saveDrug(){this.load();const name=val('drugName').trim();if(!name)return alert('Drug name required.');const existing=this.drugs.findIndex(d=>d.name.toLowerCase()===name.toLowerCase());const rec={name,cat:val('drugCat'),qty:parseInt(val('drugQty'))||0,unit:val('drugUnit'),reorder:parseInt(val('drugReorder'))||10,price:parseFloat(val('drugPrice'))||0,expiry:val('drugExpiry'),supplier:val('drugSupplier'),id:uid('DRG')};if(existing>=0){rec.id=this.drugs[existing].id;this.drugs[existing]=rec;}else{this.drugs.push(rec);}this.save();App.log('DRUG STOCK','Pharmacy',`${name} — ${rec.qty} ${rec.unit}`,'bc');this.render();this.populateDrugSelect();['drugName','drugQty','drugExpiry','drugSupplier'].forEach(id=>{const e=el(id);if(e)e.value='';});},
+  render(){this.load();const q=(val('pharmaSearch')||'').toLowerCase();el('pharmaCount').innerText=this.drugs.length+' ITEMS';el('pharmaList').innerHTML=this.drugs.filter(d=>d.name.toLowerCase().includes(q)||d.cat.toLowerCase().includes(q)).map((d,i)=>{const low=d.qty<=d.reorder;const pct=Math.min(100,Math.round(d.qty/(d.reorder*2+1)*100));return`<tr><td><b>${d.name}</b><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${low?'var(--red)':'var(--green)'}"></div></div></td><td><span class="bdg bc">${d.cat}</span></td><td style="color:${low?'var(--red)':'var(--green)'};font-weight:700;">${d.qty} ${d.unit}${low?' ⚠️':''}</td><td>KES ${d.price.toFixed(2)}</td><td style="color:${d.expiry&&new Date(d.expiry)<new Date()?'var(--red)':'var(--muted)'};">${d.expiry||'—'}</td><td><button class="tbl-btn tbl-btn-r" onclick="Pharma.deleteDrug(${i})">🗑</button></td></tr>`;}).join('');const alerts=this.drugs.filter(d=>d.qty<=d.reorder);el('dash-pharma-alerts').innerHTML=alerts.length?alerts.slice(0,6).map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:.8rem;"><span>${d.name}</span><span style="color:var(--red);font-weight:700;">${d.qty} left ⚠️</span></div>`).join(''):'<div style="color:var(--muted);font-size:.8rem;padding:10px 0;">All stocks adequate ✅</div>';},
+  deleteDrug(i){this.load();this.drugs.splice(i,1);this.save();this.render();},
+  populateDrugSelect(){this.load();const s=el('dispDrug');if(!s)return;s.innerHTML='<option value="">— Select Drug —</option>'+this.drugs.map(d=>`<option value="${d.id}">${d.name} (${d.qty} ${d.unit})</option>`).join('');},
+  dispense(){this.load();const pid=val('dispPatient'),drugId=val('dispDrug'),qty=parseInt(val('dispQty'))||1,instr=val('dispInstr');if(!pid||!drugId)return alert('Select patient and drug.');const d=this.drugs.find(x=>x.id===drugId);if(!d)return;if(d.qty<qty)return alert(`Only ${d.qty} ${d.unit} in stock.`);d.qty-=qty;this.save();App.log('DISPENSE',pid,`${qty}x ${d.name} — ${instr}`,'bc');this.render();this.populateDrugSelect();alert(`Dispensed ${qty}x ${d.name}`);},
+};
+
+/* ══════════════════════════════════════════════════
+   BILLING
+══════════════════════════════════════════════════ */
+const Billing={
+  items:[],
+  addItem(){const desc=val('billDesc').trim(),qty=parseInt(val('billQtyI'))||1,unit=parseFloat(val('billUnit'))||0;if(!desc)return;this.items.push({desc,qty,unit,total:qty*unit});el('billDesc').value='';el('billQtyI').value=1;el('billUnit').value='';this.renderItems();},
+  removeItem(i){this.items.splice(i,1);this.renderItems();},
+  renderItems(){el('billItems').innerHTML=this.items.map((it,i)=>`<div style="display:grid;grid-template-columns:2fr 0.5fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem;"><span>${it.desc}</span><span>${it.qty}</span><span>KES ${it.unit.toFixed(2)}</span><span style="font-weight:700;color:var(--accent);">KES ${it.total.toFixed(2)}</span><button class="tbl-btn tbl-btn-r" onclick="Billing.removeItem(${i})">✕</button></div>`).join('');const total=this.items.reduce((s,i)=>s+i.total,0);el('billTotal').innerText=total.toFixed(2);this.calcBalance();},
+  calcBalance(){const total=this.items.reduce((s,i)=>s+i.total,0);const paid=parseFloat(val('billPaid'))||0;el('billBalance').innerText=Math.max(0,total-paid).toFixed(2);},
+  saveInvoice(){const invs=LS('aethera_invoices')||[];const pid=val('billPatient').trim();if(!pid||!this.items.length)return alert('Add patient and items.');const total=this.items.reduce((s,i)=>s+i.total,0);const paid=parseFloat(val('billPaid'))||0;const bal=Math.max(0,total-paid);const inv={id:'INV-'+Date.now(),pid,items:[...this.items],total,paid,balance:bal,method:val('billMethod'),date:today()};invs.unshift(inv);LS('aethera_invoices',invs);const p=App.db.find(x=>x.id===pid);if(p){p.balance=(p.balance||0)+bal;App.sync();}App.log('INVOICE',inv.id,`${pid} — KES ${total.toFixed(2)}`,'by');this.items=[];this.renderItems();el('billPaid').value='';el('billBalance').innerText='0.00';this.renderInvoices();App.renderDB();alert('🧾 Invoice saved.');},
+  renderInvoices(){const invs=LS('aethera_invoices')||[];el('invoiceCount').innerText=invs.length+' INVOICES';el('invoiceList').innerHTML=invs.map(inv=>`<tr><td class="mono">${inv.id}</td><td>${inv.pid}</td><td style="color:var(--accent);font-weight:700;">KES ${inv.total.toFixed(2)}</td><td style="color:var(--green);">KES ${inv.paid.toFixed(2)}</td><td style="color:${inv.balance>0?'var(--red)':'var(--green)'};font-weight:700;">KES ${inv.balance.toFixed(2)}</td><td><span class="bdg by">${inv.method}</span></td><td>${inv.date}</td></tr>`).join('');},
+};
+
+/* ══════════════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════════════ */
+const App={
+  db:[],logs:[],triage:[],appts:[],vitalsLog:[],labs:[],staff:[],
+  activePID:null,activeDisp:null,activeTriageLevel:null,activeVPID:null,activeLabPID:null,rxList:[],
+  mode:'new',
+
+  load(){this.db=LS('aethera_db')||[];this.logs=LS('aethera_logs')||[];this.triage=LS('aethera_triage')||[];this.appts=LS('aethera_appts')||[];this.vitalsLog=LS('aethera_vitals')||[];this.labs=LS('aethera_labs')||[];this.staff=LS('aethera_staff')||[];},
+  sync(){LS('aethera_db',this.db);},
+  log(action,target,details,cls){
+    this.logs=(LS('aethera_logs')||[]);
+    const user=Auth.currentUser;
+    this.logs.unshift({time:ts(),user:user?user.name:'System',action,target,details,cls});
+    LS('aethera_logs',this.logs.slice(0,300));
+    this.renderLedger();
+  },
+
+  init(){
+    setInterval(()=>{el('clock-top').innerText=new Date().toLocaleString();},1000);
+    this.load();WardMgr.load();WardMgr.populateSelects();
+    Pharma.render();Pharma.populateDrugSelect();Billing.renderInvoices();
+    this.renderDB();this.renderLedger();this.renderDash();this.renderTriage();
+    this.renderAppts();this.renderVitals();this.renderLab();this.renderStaff();
+    this.updateBadges();setInterval(()=>this.updateBadges(),5000);
+  },
+
+  updateBadges(){
+    this.load();
+    el('nb-triage').innerText=this.triage.filter(t=>t.status==='Waiting').length;
+    el('nb-appt').innerText=this.appts.filter(a=>a.date===new Date().toISOString().split('T')[0]).length;
+    const urgent=this.triage.filter(t=>t.level<=2&&t.status==='Waiting').length;
+    el('hdrAlert').style.display=urgent>0?'block':'none';
+    const pending=(LS('aethera_users')||[]).filter(u=>u.status==='pending').length;
+    if(Auth.currentUser&&Auth.currentUser.role==='admin'){el('nb-pending').innerText=pending;el('nb-pending').style.display=pending>0?'inline':'none';}
+  },
+
+  /* ── DASHBOARD ── */
+  renderDash(){
+    this.load();WardMgr.load();
+    const fr=WardMgr.totalFree();
+    el('dashStats').innerHTML=`<div class="stat"><div class="stat-val ca">${this.db.length}</div><div class="stat-lbl">Patients</div></div><div class="stat"><div class="stat-val cr">${this.triage.filter(t=>t.status==='Waiting').length}</div><div class="stat-lbl">Triage Waiting</div></div><div class="stat"><div class="stat-val cg">${fr}</div><div class="stat-lbl">Beds Free</div></div><div class="stat"><div class="stat-val cy">${this.appts.filter(a=>a.date===new Date().toISOString().split('T')[0]).length}</div><div class="stat-lbl">Today's Appts</div></div>`;
+    const tw=this.triage.filter(t=>t.status==='Waiting').slice(0,5);
+    el('dash-triage-list').innerHTML=tw.length?tw.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:.82rem;"><span>${t.name}</span><span style="display:flex;gap:6px;"><span class="bdg ${t.level<=2?'br':t.level===3?'by':'bg'}">T${t.level}</span><span style="color:var(--muted);">${t.complaint}</span></span></div>`).join(''):'<div style="color:var(--muted);font-size:.8rem;padding:10px 0;">Queue clear ✅</div>';
+    el('dash-triage-count').innerText=tw.length+' WAITING';
+    const ta=this.appts.filter(a=>a.date===new Date().toISOString().split('T')[0]).slice(0,5);
+    el('dash-appt-list').innerHTML=ta.length?ta.map(a=>`<div class="appt-slot"><div class="appt-time">${a.time||'—'}</div><div style="flex-grow:1;"><div style="font-size:.82rem;font-weight:600;">${a.patient}</div><div style="font-size:.65rem;color:var(--muted);">${a.dept}</div></div></div>`).join(''):'<div style="color:var(--muted);font-size:.8rem;padding:10px 0;">No appointments today</div>';
+    el('dash-appt-count').innerText=ta.length+' TODAY';
+    Pharma.render();
+  },
+  renderDashBeds(tot,fr){
+    el('dash-bed-summary').innerHTML=WardMgr.wards.map(w=>{const wf=w.beds.filter(b=>b.status==='free').length;const pct=w.beds.length?Math.round(wf/w.beds.length*100):0;return`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:3px;"><span>${w.name}</span><span style="color:${wf?'var(--green)':'var(--red)'};font-weight:600;">${wf}/${w.beds.length} free</span></div><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${wf?'var(--green)':'var(--red)'}"></div></div></div>`;}).join('');
+  },
+
+  /* ── TRIAGE ── */
+  setTriage(lvl){this.activeTriageLevel=lvl;for(let i=1;i<=5;i++){const b=el('tl'+i);if(b)b.classList.toggle('sel',i===lvl);}},
+  saveTriage(){
+    this.load();const name=val('trName').trim();if(!name)return alert('Name required.');if(!this.activeTriageLevel)return alert('Select triage level.');
+    const rec={id:uid('TRG'),name,complaint:val('trComplaint'),level:this.activeTriageLevel,bp:val('trBP'),pr:val('trPR'),temp:val('trTemp'),spo2:val('trSPO2'),nurse:val('trNurse'),time:ts(),status:'Waiting'};
+    this.triage.unshift(rec);LS('aethera_triage',this.triage);
+    this.log('TRIAGE',rec.id,`${name} — T${rec.level}: ${rec.complaint}`,'br');
+    ['trName','trComplaint','trBP','trPR','trTemp','trSPO2','trNurse'].forEach(id=>{const e=el(id);if(e)e.value='';});this.activeTriageLevel=null;for(let i=1;i<=5;i++){const b=el('tl'+i);if(b)b.classList.remove('sel');}
+    this.renderTriage();this.renderDash();this.updateBadges();
+  },
+  renderTriage(){
+    this.load();const lvlNames=['','Resuscitation','Emergent','Urgent','Less Urgent','Non-Urgent'];
+    el('triageQueueCount').innerText=this.triage.filter(t=>t.status==='Waiting').length+' WAITING';
+    el('triageQueue').innerHTML=this.triage.slice(0,20).map((t,i)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-weight:700;font-size:.85rem;">${t.name}</span><div style="display:flex;gap:6px;"><span class="bdg ${t.level<=2?'br':t.level===3?'by':'bg'}">T${t.level} ${lvlNames[t.level]}</span><span class="bdg ${t.status==='Waiting'?'by':'bg'}">${t.status}</span></div></div><div style="font-size:.75rem;color:var(--muted);">${t.complaint} | BP:${t.bp||'—'} PR:${t.pr||'—'} Temp:${t.temp||'—'}</div><div style="margin-top:7px;display:flex;gap:6px;">${t.status==='Waiting'?`<button class="tbl-btn tbl-btn-g" onclick="App.attendTriage(${i})">✅ Seen</button>`:''}<button class="tbl-btn" onclick="App.triageToReg('${t.id}')">📝 Register</button><button class="tbl-btn tbl-btn-r" onclick="App.removeTriage(${i})">🗑</button></div></div>`).join('');
+  },
+  attendTriage(i){this.load();this.triage[i].status='Seen';LS('aethera_triage',this.triage);this.renderTriage();this.renderDash();this.updateBadges();},
+  removeTriage(i){this.load();this.triage.splice(i,1);LS('aethera_triage',this.triage);this.renderTriage();this.updateBadges();},
+  triageToReg(id){this.load();const t=this.triage.find(x=>x.id===id);if(!t)return;el('pName').value=t.name;goTo('reg');},
+
+  /* ── REG ── */
+  setMode(m){this.mode=m;el('btnNew').classList.toggle('active',m==='new');el('btnOld').classList.toggle('active',m==='old');el('recallBox').style.display=m==='old'?'block':'none';el('mainBtn').className=m==='new'?'btn btn-p btn-full':'btn btn-s btn-full';el('mainBtn').innerHTML=m==='new'?'Save Patient':'📂 Re-Open File';if(m==='new')this.clearReg();},
+  dbSearch(){const q=val('dbQuery').toLowerCase();const list=el('resultsList');if(!q){list.innerHTML='';return;}this.load();const hits=this.db.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q));list.innerHTML=hits.map(p=>`<div class="recall-res" onclick="App.autoFill('${p.id}')">${p.name} (${p.id})</div>`).join('');},
+  autoFill(pid){this.load();const p=this.db.find(x=>x.id===pid);if(!p)return;this.activePID=pid;['pName','pID','pDOB','pAddr','pPhone','pKin','pIns','pPol'].forEach((id,i)=>{const keys=['name','natID','dob','addr','phone','kin','ins','pol'];const e=el(id);if(e)e.value=p[keys[i]]||'';});el('resultsList').innerHTML='';this.log('RECALL',p.id,`Credentials loaded: ${p.name}`,'by');},
+  savePatient(){if(this.mode==='old'){this.openChart(this.activePID);return;}this.load();const name=val('pName').trim();if(!name)return alert('Name required.');const newID=uid('PID');const rec={id:newID,name,natID:val('pID'),dob:val('pDOB'),gender:val('pGender'),blood:val('pBlood'),addr:val('pAddr'),phone:val('pPhone'),kin:val('pKin'),kinPhone:val('pKinPhone'),kinRel:val('pKinRel'),ins:val('pIns'),pol:val('pPol'),occ:val('pOcc'),complaint:'',hpi:'',pastHistory:'',drugHistory:'',familyHistory:'',socialHistory:'',review:'',exam:'',diagnosis:'',icd:'',currentNote:'',nextVisitDate:'',nextVisitPurpose:'',disposition:'',dispRD:'',dispRR:'',dispRH:'',dispRDept:'',dispRDate:'',dispReason:'',dispDN:'',dispDD:'',dispDC:'',bedWardId:'',bedAssigned:'',wardAssigned:'',rxList:[],balance:0,lastVisit:today()};this.db.push(rec);this.sync();this.log('REGISTRATION',newID,`New patient: ${name}`,'bg');this.renderDB();this.renderDash();this.openChart(newID);},
+
+  /* ── APPOINTMENTS ── */
+  apptSearch(){const q=val('apptPatient').toLowerCase();const res=el('apptSearchRes');if(!q){res.innerHTML='';return;}this.load();res.innerHTML=this.db.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)).slice(0,4).map(p=>`<div class="recall-res" onclick="App.setApptP('${p.id}','${p.name}')">${p.name} (${p.id})</div>`).join('');},
+  setApptP(pid,name){el('apptPatient').value=name+' ('+pid+')';this._apptPID=pid;el('apptSearchRes').innerHTML='';},
+  saveAppt(){this.load();const patient=val('apptPatient').trim();if(!patient)return alert('Patient required.');const rec={id:uid('APT'),patient,pid:this._apptPID||'',doctor:val('apptDoctor'),dept:val('apptDept'),date:val('apptDate'),time:val('apptTime'),type:val('apptType'),notes:val('apptNotes'),status:'Scheduled'};this.appts.unshift(rec);LS('aethera_appts',this.appts);this.log('APPOINTMENT',rec.id,`${patient} — ${rec.dept} on ${rec.date}`,'bb');['apptPatient','apptDoctor','apptDate','apptTime','apptNotes'].forEach(id=>{const e=el(id);if(e)e.value='';});this._apptPID=null;this.renderAppts();this.renderDash();this.updateBadges();},
+  renderAppts(){this.load();el('apptCount').innerText=this.appts.length;el('apptList').innerHTML=this.appts.slice(0,20).map((a,i)=>`<div class="appt-slot"><div class="appt-time">${a.time||'—'}</div><div style="flex-grow:1;"><div style="font-size:.82rem;font-weight:600;">${a.patient}</div><div style="font-size:.65rem;color:var(--muted);">${a.dept} — ${a.date}</div></div><span class="bdg bb">${a.status}</span><button class="tbl-btn tbl-btn-r" style="margin-left:6px;" onclick="App.cancelAppt(${i})">Cancel</button></div>`).join('');},
+  cancelAppt(i){this.load();this.appts[i].status='Cancelled';LS('aethera_appts',this.appts);this.renderAppts();},
+
+  /* ── CHART ── */
+  openChart(pid){this.load();const p=this.db.find(x=>x.id===pid);if(!p)return;this.activePID=pid;this.rxList=p.rxList||[];el('activePatientName').innerText=p.name;el('activePIDBadge').innerText='PID: '+p.id;const bb=el('activeBloodBadge');if(bb){bb.innerText=p.blood||'';bb.style.display=p.blood?'inline-block':'none';}const map={cComplaint:'complaint',cHPI:'hpi',cPastHistory:'pastHistory',cDrugHistory:'drugHistory',cFamilyHistory:'familyHistory',cSocialHistory:'socialHistory',cReview:'review',cExam:'exam',cDiagnosis:'diagnosis',cICD:'icd',cNote:'currentNote',cNextDate:'nextVisitDate',cNextPurpose:'nextVisitPurpose'};for(const[id,key]of Object.entries(map)){const e=el(id);if(e)e.value=p[key]||'';}WardMgr.populateSelects();el('cBedWard').value=p.bedWardId||'';this.populateBedSelect();el('cBedNum').value=p.bedAssigned||'';this.activeDisp=p.disposition||null;this._applyDispUI(p);this.renderRx();this.log('FILE ACCESS',p.id,`Chart opened: ${p.name}`,'bb');goTo('chart');},
+  populateBedSelect(){const wardId=val('cBedWard'),s=el('cBedNum');if(!wardId){s.innerHTML='<option value="">— Select Ward —</option>';return;}s.innerHTML='<option value="">— None —</option>'+WardMgr.allBeds(wardId).map(b=>{const ok=b.status==='free'||b.patientPID===this.activePID;return`<option value="${b.num}">${ok?'🟢':'🔴'} Bed ${b.num} — ${b.status}${b.patient?' ('+b.patient+')':''}</option>`;}).join('');},
+  addRx(){const drug=val('rxDrug').trim(),dose=val('rxDose').trim(),dur=val('rxDur').trim();if(!drug)return;this.rxList.push({drug,dose,dur});['rxDrug','rxDose','rxDur'].forEach(id=>{const e=el(id);if(e)e.value='';});this.renderRx();},
+  removeRx(i){this.rxList.splice(i,1);this.renderRx();},
+  renderRx(){el('rxList').innerHTML=this.rxList.map((r,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8rem;"><span>💊 <b>${r.drug}</b> — ${r.dose} × ${r.dur}</span><button class="tbl-btn tbl-btn-r" onclick="App.removeRx(${i})">✕</button></div>`).join('');},
+  setDisp(type){this.activeDisp=this.activeDisp===type?null:type;this._applyDispUI(null);},
+  _applyDispUI(p){['return','referral','discharge'].forEach(t=>{el('disp-'+t).className='disp-card';el('dd-'+t).classList.remove('open');});const s=this.activeDisp;if(!s)return;const cm={return:'sel-return',referral:'sel-referral',discharge:'sel-discharge'};el('disp-'+s).classList.add(cm[s]);el('dd-'+s).classList.add('open');if(p){if(s==='return'){el('cDispRD').value=p.dispRD||'';el('cDispRR').value=p.dispRR||'';}if(s==='referral'){el('cDispRH').value=p.dispRH||'';el('cDispRDept').value=p.dispRDept||'';el('cDispRDate').value=p.dispRDate||'';el('cDispReason').value=p.dispReason||'';}if(s==='discharge'){el('cDispDN').value=p.dispDN||'';el('cDispDD').value=p.dispDD||'';el('cDispDC').value=p.dispDC||'';}}},
+  saveClinical(){this.load();const p=this.db.find(x=>x.id===this.activePID);if(!p)return alert('No patient loaded.');const map={complaint:'cComplaint',hpi:'cHPI',pastHistory:'cPastHistory',drugHistory:'cDrugHistory',familyHistory:'cFamilyHistory',socialHistory:'cSocialHistory',review:'cReview',exam:'cExam',diagnosis:'cDiagnosis',icd:'cICD',currentNote:'cNote',nextVisitDate:'cNextDate',nextVisitPurpose:'cNextPurpose'};for(const[key,id]of Object.entries(map)){p[key]=val(id);}p.rxList=[...this.rxList];const prevWard=p.bedWardId,prevBed=p.bedAssigned;p.bedWardId=val('cBedWard');p.bedAssigned=val('cBedNum');const wObj=WardMgr.wards.find(w=>w.id===p.bedWardId);p.wardAssigned=wObj?wObj.name:'';if(prevWard&&prevBed&&(prevWard!==p.bedWardId||prevBed!==p.bedAssigned)){const ow=WardMgr.wards.find(w=>w.id===prevWard);if(ow){const ob=ow.beds.find(b=>b.num===prevBed);if(ob&&ob.patientPID===p.id){ob.status='free';ob.patient='';ob.patientPID='';}}}if(p.bedWardId&&p.bedAssigned&&wObj){const nb=wObj.beds.find(b=>b.num===p.bedAssigned);if(nb){nb.status='occupied';nb.patient=p.name;nb.patientPID=p.id;}}WardMgr.save();p.disposition=this.activeDisp||'';p.dispRD=val('cDispRD');p.dispRR=val('cDispRR');p.dispRH=val('cDispRH');p.dispRDept=val('cDispRDept');p.dispRDate=val('cDispRDate');p.dispReason=val('cDispReason');p.dispDN=val('cDispDN');p.dispDD=val('cDispDD');p.dispDC=val('cDispDC');p.lastVisit=today();this.sync();let ds='No disposition';if(p.disposition==='return')ds=`Return → ${p.dispRD||'TBD'}`;if(p.disposition==='referral')ds=`Referred → ${p.dispRH||'—'}`;if(p.disposition==='discharge')ds=`Discharged (${p.dispDC||'—'})`;this.log('CLINICAL UPDATE',p.id,`Dx: ${p.diagnosis||'—'}. ${ds}`,'bb');this.renderDB();this.renderDash();alert('Clinical record saved.');},
+
+  /* ── VITALS ── */
+  vSearch(){const q=val('vPatient').toLowerCase();const res=el('vSearchRes');if(!q){res.innerHTML='';return;}this.load();res.innerHTML=this.db.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)).slice(0,4).map(p=>`<div class="recall-res" onclick="App.setVP('${p.id}','${p.name}')">${p.name} (${p.id})</div>`).join('');},
+  setVP(pid,name){this.activeVPID=pid;el('vPatient').value=name+' ('+pid+')';el('vSearchRes').innerHTML='';el('vActivePatient').innerText='▸ '+name;el('vWeight').oninput=el('vHeight').oninput=()=>{const w=parseFloat(val('vWeight')),h=parseFloat(val('vHeight'))/100;if(w&&h)el('vBMI').value=(w/(h*h)).toFixed(1);};},
+  saveVitals(){const pid=this.activeVPID;if(!pid)return alert('Select a patient first.');this.load();const rec={pid,patientName:el('vActivePatient').innerText.replace('▸ ',''),time:ts(),bp:val('vBP'),pr:val('vPR'),temp:val('vTemp'),spo2:val('vSPO2'),rr:val('vRR'),weight:val('vWeight'),height:val('vHeight'),bmi:val('vBMI'),bg:val('vBG'),notes:val('vNotes')};this.vitalsLog.unshift(rec);LS('aethera_vitals',this.vitalsLog.slice(0,200));this.log('VITALS',pid,`BP:${rec.bp} PR:${rec.pr} Temp:${rec.temp}`,'bc');['vBP','vPR','vTemp','vSPO2','vRR','vWeight','vHeight','vBMI','vBG','vNotes'].forEach(id=>{const e=el(id);if(e)e.value='';});this.renderVitals();alert('Vitals saved.');},
+  renderVitals(){this.load();el('vitalsLog').innerHTML=this.vitalsLog.slice(0,20).map(v=>`<tr><td style="font-size:.68rem;">${v.time}</td><td>${v.patientName}</td><td>${v.bp||'—'}</td><td>${v.pr||'—'}</td><td>${v.temp||'—'}</td><td>${v.spo2||'—'}</td><td>${v.weight||'—'}</td></tr>`).join('');},
+
+  /* ── LAB ── */
+  labSearch(){const q=val('labPatient').toLowerCase();const res=el('labSearchRes');if(!q){res.innerHTML='';return;}this.load();res.innerHTML=this.db.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)).slice(0,4).map(p=>`<div class="recall-res" onclick="App.setLP('${p.id}','${p.name}')">${p.name} (${p.id})</div>`).join('');},
+  setLP(pid,name){this.activeLabPID=pid;el('labPatient').value=name+' ('+pid+')';el('labSearchRes').innerHTML='';el('labActivePatient').innerText='▸ '+name;},
+  saveLab(){const pid=this.activeLabPID;if(!pid)return alert('Select a patient.');this.load();const cat=val('labCat');if(!cat)return alert('Select category.');const rec={id:uid('LAB'),pid,cat,note:val('labNote'),priority:val('labPriority'),doctor:val('labDoc'),time:ts(),status:'Pending',result:'',patientName:el('labActivePatient').innerText.replace('▸ ','')};this.labs.unshift(rec);LS('aethera_labs',this.labs);this.log('LAB REQUEST',rec.id,`${rec.cat} for ${pid} — ${rec.priority}`,'bp');['labNote','labDoc'].forEach(id=>{const e=el(id);if(e)e.value='';});this.activeLabPID=null;el('labActivePatient').innerText='';this.renderLab();},
+  openLabResult(idx){this.load();const lab=this.labs[idx];el('labResTitle').innerText='🔬 '+lab.cat;el('labResIdx').value=idx;el('labResText').value=lab.result||'';el('labResStatus').value=lab.status;el('labResultModal').classList.add('open');},
+  saveLabResult(){this.load();const idx=parseInt(val('labResIdx'));this.labs[idx].result=val('labResText');this.labs[idx].status=val('labResStatus');LS('aethera_labs',this.labs);this.log('LAB RESULT',this.labs[idx].id,`Result: ${this.labs[idx].cat}`,'bp');closeModal('labResultModal');this.renderLab();},
+  renderLab(){this.load();el('labCount').innerText=this.labs.length;el('labList').innerHTML=this.labs.slice(0,30).map((lab,i)=>`<tr><td style="font-size:.68rem;">${lab.time}</td><td>${lab.patientName}<br><span class="mono">${lab.pid}</span></td><td><b>${lab.cat}</b>${lab.note?`<br><span style="font-size:.65rem;color:var(--muted);">${lab.note}</span>`:''}</td><td><span class="bdg ${lab.priority==='STAT'?'br':lab.priority==='Urgent'?'by':'bb'}">${lab.priority}</span></td><td><span class="bdg ${lab.status==='Completed'?'bg':'by'}">${lab.status}</span></td><td><button class="tbl-btn" onclick="App.openLabResult(${i})">📋 Result</button></td></tr>`).join('');},
+
+  /* ── DB ── */
+  renderDB(){this.load();const q=(val('dbSearch')||'').toLowerCase();el('dbCount').innerText=this.db.length+' RECORDS';const filtered=this.db.filter(p=>!q||p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q));const dispBadge=p=>{if(!p.disposition)return'<span style="color:var(--muted);">—</span>';if(p.disposition==='return')return`<span class="bdg bg">🔄</span>`;if(p.disposition==='referral')return`<span class="bdg by">🏥</span>`;if(p.disposition==='discharge')return`<span class="bdg br">✅</span>`;};el('dbContent').innerHTML=[...filtered].reverse().map(p=>`<tr><td class="mono">${p.id}</td><td><b>${p.name}</b><br><span style="font-size:.65rem;color:var(--muted);">${p.gender||''}</span></td><td>${p.gender||'—'}</td><td>${p.blood?`<span class="bdg br">${p.blood}</span>`:'—'}</td><td>${p.lastVisit}</td><td>${dispBadge(p)}</td><td>${p.bedAssigned?`<span class="bdg bp">${p.bedAssigned}</span>`:'—'}</td><td style="color:${(p.balance||0)>0?'var(--red)':'var(--green)'};font-weight:700;">KES ${(p.balance||0).toFixed(2)}</td><td style="display:flex;gap:4px;"><button class="tbl-btn" onclick="App.openChart('${p.id}')">Chart</button><button class="tbl-btn" onclick="App.toBill('${p.id}')">Bill</button></td></tr>`).join('');this.renderStats();},
+  toBill(pid){this.load();const p=this.db.find(x=>x.id===pid);if(!p)return;el('billPatient').value=p.id;el('billActivePatient').innerText='▸ '+p.name;goTo('billing');},
+  billSearch(){const q=val('billPatient').toLowerCase();const res=el('billSearchRes');if(!q){res.innerHTML='';return;}this.load();res.innerHTML=this.db.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)).slice(0,4).map(p=>`<div class="recall-res" onclick="App.setBP('${p.id}','${p.name}')">${p.name} (${p.id})</div>`).join('');},
+  setBP(pid,name){el('billPatient').value=pid;el('billSearchRes').innerHTML='';el('billActivePatient').innerText='▸ '+name;},
+  renderStats(){this.load();WardMgr.load();const fr=WardMgr.totalFree();el('statsRow').innerHTML=`<div class="stat"><div class="stat-val ca">${this.db.length}</div><div class="stat-lbl">Patients</div></div><div class="stat"><div class="stat-val cg">${this.db.filter(p=>p.disposition==='return').length}</div><div class="stat-lbl">Return Visits</div></div><div class="stat"><div class="stat-val cy">${this.db.filter(p=>p.disposition==='referral').length}</div><div class="stat-lbl">Referred</div></div><div class="stat"><div class="stat-val cp">${fr}</div><div class="stat-lbl">Beds Free</div></div>`;},
+
+  /* ── STAFF ── */
+  saveStaff(){this.load();const name=val('sfName').trim();if(!name)return alert('Name required.');const rec={id:uid('STF'),name,staffId:val('sfID'),role:val('sfRole'),dept:val('sfDept'),phone:val('sfPhone'),status:val('sfStatus'),spec:val('sfSpec'),joined:today()};this.staff.unshift(rec);LS('aethera_staff',this.staff);this.log('STAFF ADDED',rec.id,`${name} — ${rec.role}`,'bpk');['sfName','sfID','sfPhone','sfSpec'].forEach(id=>{const e=el(id);if(e)e.value='';});this.renderStaff();},
+  renderStaff(){this.load();el('staffCount').innerText=this.staff.length;const rc={Doctor:'var(--accent)',Nurse:'var(--green)','Clinical Officer':'var(--cyan)',default:'var(--muted)'};const ss={'On Duty':'cg','Off Duty':'cr','Night Shift':'cc','On Leave':'cy'};el('staffGrid').innerHTML=this.staff.map((s,i)=>`<div class="staff-card"><div class="staff-avatar" style="background:${rc[s.role]||rc.default};">${s.name.charAt(0)}</div><div style="flex-grow:1;min-width:0;"><div style="font-size:.82rem;font-weight:700;">${s.name}</div><div style="font-size:.65rem;color:var(--muted);">${s.role}</div><div style="font-size:.6rem;" class="${ss[s.status]||''}">● ${s.status}</div></div><button class="tbl-btn tbl-btn-r" onclick="App.removeStaff(${i})">🗑</button></div>`).join('');},
+  removeStaff(i){this.load();this.staff.splice(i,1);LS('aethera_staff',this.staff);this.renderStaff();},
+
+  /* ── LEDGER ── */
+  renderLedger(){const logs=LS('aethera_logs')||[];el('ledgerContent').innerHTML=logs.map(l=>`<tr><td>${l.time}</td><td style="color:var(--muted);">${l.user||'—'}</td><td><span class="bdg ${l.cls}">${l.action}</span></td><td><b>${l.target}</b></td><td>${l.details}</td></tr>`).join('');},
+
+  clearReg(){['pName','pID','pDOB','pAddr','pPhone','pKin','pIns','pPol','pKinPhone','pKinRel','pOcc'].forEach(id=>{const e=el(id);if(e)e.value='';});['pGender','pBlood'].forEach(id=>{const e=el(id);if(e)e.selectedIndex=0;});this.activePID=null;}
+};
+
+function goTo(id){
+  if(el('nav-'+id)&&el('nav-'+id).classList.contains('locked')){alert('⛔ You do not have access to this section.');return;}
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const v=el(id+'-view'),n=el('nav-'+id);
+  if(v)v.classList.add('active');if(n)n.classList.add('active');
+  if(id==='db')App.renderDB();if(id==='ward')WardMgr.render();if(id==='dash')App.renderDash();
+  if(id==='pharmacy'){Pharma.render();Pharma.populateDrugSelect();}if(id==='billing')Billing.renderInvoices();
+  if(id==='staff')App.renderStaff();
+  if(id==='vitals')App.renderVitals();
+  if(id==='lab')App.renderLab();
+  if(id==='ledger')App.renderLedger();
+  if(id==='admin')Auth.renderAdminPanel();
+}
+
+// ── CLOCK ──
+setInterval(()=>{const d=new Date();const t=el('clock-top');if(t)t.innerText=d.toLocaleTimeString();},1000);
+
+// ── ADMIN TAB SWITCHER ──
+function adminTab(name){
+  document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.apanel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  const tab=el('atab-'+name),panel=el('apanel-'+name);
+  if(tab)tab.classList.add('active');
+  if(panel){panel.style.display='block';panel.classList.add('active');}
+  if(name==='logs')App.renderLedger();
+  if(name==='users'||name==='overview')Auth.renderAdminPanel();
+}
+function filterAdminUsers(){
+  const q=(val('adminUserSearch')||'').toLowerCase();
+  document.querySelectorAll('#allUsersList .admin-user-row').forEach(row=>{
+    const name=row.dataset.name||'';
+    const role=row.dataset.role||'';
+    row.style.display=(!q||name.includes(q)||role.includes(q))?'':'none';
+  });
+}
+
+// ── BOOT ──
+window.addEventListener('DOMContentLoaded',()=>{ Auth.init(); });
+</script>
+</body>
+</html>
